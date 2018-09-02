@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,15 +9,11 @@ using Sync.Tools.ConfigurationAttribute;
 
 namespace OsuLivePlayer
 {
-    internal class Config : IConfigurable
+    public class Config : IConfigurable
     {
-        [Integer(MaxValue = 4096, MinValue = 320, RequireRestart = true)]
-        public ConfigurationElement Width { get; set; }
-        [Integer(MaxValue = 2160, MinValue = 180, RequireRestart = true)]
-        public ConfigurationElement Height { get; set; }
-
-        [Bool(RequireRestart = true)]
-        public ConfigurationElement UseVsync { get; set; }
+        [Path(IsDirectory = true, RequireRestart = true)]
+        public ConfigurationElement WorkPath { get; set; } =
+            Path.Combine(new DirectoryInfo(Directory.GetCurrentDirectory()).Parent.FullName, typeof(OsuLivePlayerPlugin).Name);
 
         public void onConfigurationLoad()
         {

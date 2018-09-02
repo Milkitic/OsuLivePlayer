@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using OsuLivePlayer.Interface;
 using OsuLivePlayer.Model;
+using OsuLivePlayer.Model.DxAnimation;
 using OsuLivePlayer.Util;
 using OsuLivePlayer.Util.DxUtil;
 using OsuRTDataProvider.Listen;
@@ -18,20 +19,46 @@ namespace OsuLivePlayer.Layer.Dx
 {
     internal class BgDxLayer : DxLayer
     {
+        private readonly D2D.Bitmap _defaultBg, _coverBg;
+
         private D2D.Bitmap _oldBg, _newBg;
+        private Mathe.RawRectangleF _fixedRectOld, _fixedRect;
+        private readonly Mathe.RawRectangleF _windowRect;
+
         private string _currentMapPath;
-        private Mathe.RawRectangleF _fixedRect;
-        
+        private BitmapObject _newBgObj, _oldBgObj;
+        private bool _lastBgIsNull;
+
         private readonly OsuListenerManager.OsuStatus _status;
+        private static readonly Random Rnd = new Random();
 
         // Overall control
         private bool _isStart;
+
+        // Effect control;
+        private int _transformStyle;
 
         public BgDxLayer(D2D.RenderTarget renderTarget, DxLoadSettings settings, OsuModel osuModel)
             : base(renderTarget, settings, osuModel)
         {
             _currentMapPath = "";
             _status = OsuModel.Status;
+            string defName = "default.png";
+            string covName = "cover.png";
+            var defBgPath = Path.Combine(OsuLivePlayerPlugin.Config.WorkPath, defName);
+            var covBgPath = Path.Combine(OsuLivePlayerPlugin.Config.WorkPath, covName);
+            if (File.Exists(defBgPath))
+                _defaultBg = renderTarget.LoadBitmap(defBgPath);
+            else
+                LogUtil.LogError($"Can not find \"{defName}\"");
+
+            if (File.Exists(covBgPath))
+                _coverBg = renderTarget.LoadBitmap(covBgPath);
+            else
+                LogUtil.LogError($"Can not find \"{covName}\"");
+
+            var size = Settings.RenderSettings.WindowSize;
+            _windowRect = new Mathe.RawRectangleF(0, 0, size.Width, size.Height);
         }
 
         public override void Measure()
@@ -45,13 +72,29 @@ namespace OsuLivePlayer.Layer.Dx
             {
                 _currentMapPath = OsuModel.Idle.NowMap.Folder;
                 var currentBgPath = Path.Combine(_currentMapPath, OsuModel.Idle.NowMap.BackgroundFilename);
+
                 if (File.Exists(currentBgPath))
                 {
+                    _oldBg = _newBg;
                     _newBg = RenderTarget.LoadBitmap(currentBgPath);
-                    _fixedRect = GetBgPosition(_newBg.Size);
+                    _lastBgIsNull = false;
                 }
+                else if (_defaultBg != null)
+                {
+                    if (_lastBgIsNull) return;
+                    _oldBg = _newBg;
+                    _newBg = _defaultBg;
+                    _lastBgIsNull = true;
+                }
+                else
+                    return;
 
-                // todo
+                _fixedRectOld = _fixedRect;
+                _fixedRect = GetBgPosition(_newBg.Size);
+                var size = Settings.RenderSettings.WindowSize;
+                if (_newBg != null) _newBgObj = new BitmapObject(RenderTarget, _newBg, new Mathe.RawPoint(size.Width / 2, size.Height / 2));
+                if (_oldBg != null) _oldBgObj = new BitmapObject(RenderTarget, _oldBg, new Mathe.RawPoint(size.Width / 2, size.Height / 2));
+                _transformStyle = Rnd.Next(0, 4);
             }
         }
 
@@ -59,8 +102,50 @@ namespace OsuLivePlayer.Layer.Dx
         {
             if (!_isStart) return;
 
+            if (_oldBg != null)
+            {
+                _oldBgObj.StartDraw();
+                _oldBgObj.Fade(EasingEnum.Linear, 0, 300, 1, 1);
+                _oldBgObj.FreeRect(EasingEnum.Linear, 0, 0, _fixedRectOld, _fixedRectOld);
+                _oldBgObj.EndDraw();
+            }
             if (_newBg != null)
-                RenderTarget.DrawBitmap(_newBg, _fixedRect, 1, D2D.BitmapInterpolationMode.Linear);
+            {
+                float w = 100, h = w * (_fixedRect.Bottom - _fixedRect.Top) / (_fixedRect.Right - _fixedRect.Left);
+
+                _newBgObj.StartDraw();
+                switch (_transformStyle)
+                {
+                    case 0:
+                        _newBgObj.Fade(EasingEnum.EasingOut, 0, 300, 0, 1);
+                        _newBgObj.FreeRect(EasingEnum.EasingOut, 0, 300,
+                            new Mathe.RawRectangleF(_fixedRect.Left - w / 2, _fixedRect.Top - h / 2,
+                                _fixedRect.Right + w / 2, _fixedRect.Bottom + h / 2), _fixedRect);
+                        break;
+                    case 1:
+                        _newBgObj.Fade(EasingEnum.EasingOut, 0, 300, 0, 1);
+                        _newBgObj.FreeRect(EasingEnum.EasingOut, 0, 300, _fixedRect, _fixedRect);
+                        break;
+                    case 3:
+                        _newBgObj.Fade(EasingEnum.EasingOut, 0, 100, 0, 1);
+                        _newBgObj.FreeCutRect(EasingEnum.ElasticHalfOut, 0, 1000,
+                            new Mathe.RawRectangleF(0, 0, _newBg.Size.Width / 2f, _newBg.Size.Height),
+                            new Mathe.RawRectangleF(0, 0, _newBg.Size.Width, _newBg.Size.Height));
+                        _newBgObj.FreeRect(EasingEnum.ElasticHalfOut, 0, 300, _fixedRect, _fixedRect);
+                        break;
+                    default:
+                        _newBgObj.Fade(EasingEnum.EasingOut, 0, 300, 0, 1);
+                        _newBgObj.FreeRect(EasingEnum.EasingOut, 0, 300,
+                            new Mathe.RawRectangleF(_fixedRect.Left + w / 2, _fixedRect.Top + h / 2,
+                                _fixedRect.Right - w / 2, _fixedRect.Bottom - h / 2), _fixedRect);
+                        break;
+                }
+
+                _newBgObj.EndDraw();
+            }
+
+            if (_coverBg != null)
+                RenderTarget.DrawBitmap(_coverBg, _windowRect, 1, D2D.BitmapInterpolationMode.Linear);
             // todo
         }
 
@@ -98,4 +183,6 @@ namespace OsuLivePlayer.Layer.Dx
             }
         }
     }
+
+
 }

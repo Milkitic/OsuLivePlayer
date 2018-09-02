@@ -83,7 +83,9 @@ namespace OsuLivePlayer.RenderForm
 
             LayerList = new List<DxLayer>
             {
-                new BgDxLayer(RenderTarget, _settings, _osuModel)
+                new BgDxLayer(RenderTarget, _settings, _osuModel),
+                new SongInfoDxLayer(RenderTarget, _settings, _osuModel),
+                new FpsDxLayer(RenderTarget, _settings, _osuModel),
             };
 
             _renderTask = new Task[LayerList.Count];

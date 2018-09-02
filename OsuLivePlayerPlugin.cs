@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using OsuLivePlayer.Util;
 using OsuLivePlayer.Util.DxUtil;
 using OsuRTDataProvider;
@@ -11,13 +12,13 @@ namespace OsuLivePlayer
     public class OsuLivePlayerPlugin : Plugin
     {
         private OrtdpController _ortdpController;
-        private readonly Config _config = new Config();
+        public static readonly Config Config = new Config();
         private bool _initSuccessfully = true;
 
         public OsuLivePlayerPlugin() : base(typeof(OsuLivePlayerPlugin).Name, "yf_extension")
         {
             var configManager = new PluginConfigurationManager(this);
-            configManager.AddItem(_config);
+            configManager.AddItem(Config);
 
             EventBus.BindEvent<PluginEvents.LoadCompleteEvent>(OnLoadComplete);
             EventBus.BindEvent<PluginEvents.ProgramReadyEvent>(OnProgramReady);
@@ -52,6 +53,9 @@ namespace OsuLivePlayer
                 _initSuccessfully = false;
                 return;
             }
+
+            if (!Directory.Exists(Config.WorkPath))
+                Directory.CreateDirectory(Config.WorkPath);
 
             LogUtil.LogInfo("Ortdp has been loaded.");
             _ortdpController = new OrtdpController(ortdpPlugin);

@@ -61,7 +61,13 @@
   <ItemGroup>
     <Compile Include="Config.cs" />
     <Compile Include="Interface\DxLayer.cs" />
+    <Compile Include="Layer\Dx\SongInfoDxLayer.cs" />
     <Compile Include="Layer\Dx\BgDxLayer.cs" />
+    <Compile Include="Layer\Dx\FpsDxLayer.cs" />
+    <Compile Include="Model\DxAnimation\AnimationObject.cs" />
+    <Compile Include="Model\DxAnimation\BitmapObject.cs" />
+    <Compile Include="Model\DxAnimation\StringObject.cs" />
+    <Compile Include="Model\EasingEnum.cs" />
     <Compile Include="Util\DxUtil\DxLoadSettings.cs" />
     <Compile Include="FormController.cs" />
     <Compile Include="Interface\Layer.cs" />
@@ -76,6 +82,8 @@
     <Compile Include="OsuLivePlayerPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Util\DxUtil\WicUtil.cs" />
+    <Compile Include="Util\Easing.cs" />
+    <Compile Include="Util\GdipUtil\StringUtil.cs" />
     <Compile Include="Util\LogUtil.cs" />
   </ItemGroup>
   <ItemGroup>
