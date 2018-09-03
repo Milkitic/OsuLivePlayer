@@ -4,14 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OsuLivePlayer.Model;
+using OsuLivePlayer.Model.OsuStatus;
 using OsuLivePlayer.Util.DxUtil;
 using SharpDX.Direct2D1;
 
 namespace OsuLivePlayer.Interface
 {
-    abstract class DxLayer : Layer
+    internal abstract class DxLayer : Layer
     {
-        protected DxLayer(RenderTarget renderTarget, DxLoadSettings settings, OsuModel osuModel) : base(renderTarget, settings,osuModel)
+        protected DxLayer(RenderTarget renderTarget, DxLoadObject settings, OsuModel osuModel) : base(renderTarget, settings, osuModel)
         {
         }
     }

@@ -1,7 +1,8 @@
 ﻿using OsuLivePlayer.Model;
+using OsuLivePlayer.Model.OsuStatus;
 using OsuRTDataProvider;
 
-namespace OsuLivePlayer
+namespace OsuLivePlayer.Controller
 {
     internal class OrtdpController
     {

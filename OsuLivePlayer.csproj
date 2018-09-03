@@ -59,26 +59,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Config.cs" />
+    <Compile Include="Config\DisplayConfig.cs" />
+    <Compile Include="Config\GeneralConfig.cs" />
     <Compile Include="Interface\DxLayer.cs" />
     <Compile Include="Layer\Dx\SongInfoDxLayer.cs" />
     <Compile Include="Layer\Dx\BgDxLayer.cs" />
     <Compile Include="Layer\Dx\FpsDxLayer.cs" />
+    <Compile Include="Layer\Dx\TestLayer.cs" />
     <Compile Include="Model\DxAnimation\AnimationObject.cs" />
     <Compile Include="Model\DxAnimation\BitmapObject.cs" />
     <Compile Include="Model\DxAnimation\StringObject.cs" />
     <Compile Include="Model\EasingEnum.cs" />
-    <Compile Include="Util\DxUtil\DxLoadSettings.cs" />
-    <Compile Include="FormController.cs" />
+    <Compile Include="Model\DxLoadObject.cs" />
+    <Compile Include="Controller\FormController.cs" />
     <Compile Include="Interface\Layer.cs" />
     <Compile Include="RenderForm\DxRenderForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Model\GamePlay.cs" />
-    <Compile Include="Model\Idle.cs" />
-    <Compile Include="Model\OsuModel.cs" />
-    <Compile Include="Model\Beatmap.cs" />
-    <Compile Include="OrtdpController.cs" />
+    <Compile Include="Model\OsuStatus\GamePlay.cs" />
+    <Compile Include="Model\OsuStatus\Idle.cs" />
+    <Compile Include="Model\OsuStatus\OsuModel.cs" />
+    <Compile Include="Controller\OrtdpController.cs" />
     <Compile Include="OsuLivePlayerPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Util\DxUtil\WicUtil.cs" />
@@ -89,6 +90,10 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="RenderForm\DxRenderForm.resx">
+      <DependentUpon>DxRenderForm.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

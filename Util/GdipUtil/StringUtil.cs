@@ -10,12 +10,22 @@ namespace OsuLivePlayer.Util.GdipUtil
 {
     internal static class StringUtil
     {
+        public static Bitmap[] GetCharsBitmap(string content, Font font, Brush brush) =>
+            content.Select(s => GetStringBitmap(s.ToString(), font, brush)).ToArray();
+
         public static Bitmap GetStringBitmap(string content, Font font, Brush brush)
         {
             SizeF strSize;
             Bitmap bmp = new Bitmap(1, 1);
             using (Graphics g = Graphics.FromImage(bmp))
-                strSize = g.MeasureString(content, font);
+            {
+                if (content != "" && content.Trim() == "")
+                {
+                    strSize = g.MeasureString(content.Replace(" ", "."), font);
+                }
+                else
+                    strSize = g.MeasureString(content, font);
+            }
 
             bmp = new Bitmap((int)Math.Ceiling(strSize.Width) + 10, (int)Math.Ceiling(strSize.Height) + 10);
 

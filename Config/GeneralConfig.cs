@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
+using OsuLivePlayer.Util;
 using Sync.Tools;
 using Sync.Tools.ConfigurationAttribute;
 
-namespace OsuLivePlayer
+namespace OsuLivePlayer.Config
 {
-    public class Config : IConfigurable
+    public class GeneralConfig : IConfigurable
     {
         [Path(IsDirectory = true, RequireRestart = true)]
         public ConfigurationElement WorkPath { get; set; } =
             Path.Combine(new DirectoryInfo(Directory.GetCurrentDirectory()).Parent.FullName, typeof(OsuLivePlayerPlugin).Name);
-
+        
         public void onConfigurationLoad()
         {
 
@@ -27,7 +23,7 @@ namespace OsuLivePlayer
 
         public void onConfigurationReload()
         {
-
+            
         }
     }
 }

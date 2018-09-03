@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using OsuLivePlayer.Interface;
 using OsuLivePlayer.Model;
+using OsuLivePlayer.Model.OsuStatus;
 using OsuLivePlayer.Util.DxUtil;
 using DW = SharpDX.DirectWrite;
 using D2D = SharpDX.Direct2D1;
@@ -28,7 +29,7 @@ namespace OsuLivePlayer.Layer.Dx
         private readonly Queue<long> _delayQueue = new Queue<long>();
         private string _fps = "0 FPS";
 
-        public FpsDxLayer(D2D.RenderTarget renderTarget, DxLoadSettings settings, OsuModel osuModel) : base(renderTarget, settings, osuModel)
+        public FpsDxLayer(D2D.RenderTarget renderTarget, DxLoadObject settings, OsuModel osuModel) : base(renderTarget, settings, osuModel)
         {
             _whiteBrush = new D2D.SolidColorBrush(RenderTarget, new Mathe.RawColor4(1, 1, 1, 1));
             _textFormat = new DW.TextFormat(_factoryWrite, "Microsoft YaHei", 12);
@@ -62,7 +63,9 @@ namespace OsuLivePlayer.Layer.Dx
 
         public override void Dispose()
         {
-            //throw new NotImplementedException();
+            _factoryWrite?.Dispose();
+            _textFormat?.Dispose();
+            _whiteBrush?.Dispose();
         }
     }
 }

@@ -5,88 +5,130 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OsuLivePlayer.Util;
+using SharpDX;
 using D2D = SharpDX.Direct2D1;
 using Mathe = SharpDX.Mathematics.Interop;
+using Gdip = System.Drawing;
 
 namespace OsuLivePlayer.Model.DxAnimation
 {
-    internal class BitmapObject : AnimationObject
+    internal class BitmapObject : AnimationObject, IDisposable
     {
-        private readonly D2D.RenderTarget _target;
-        private readonly D2D.Bitmap _bitmap;
-        private bool _hasStarted, _hasFinished;
+        public Size2F Size => Bitmap.Size;
+        public float Width => Size.Width;
+        public float Height => Size.Height;
+
+        protected readonly D2D.RenderTarget Target;
+        protected readonly D2D.Bitmap Bitmap;
         private readonly Stopwatch _watch = new Stopwatch();
 
-        private int MaxTime => Math.Max(_fadeMaxTime, _rectMaxTime);
-        private int _fadeMaxTime = int.MaxValue, _fadeMinTime = int.MinValue;
-        private int _rectMaxTime = int.MaxValue, _rectMinTime = int.MinValue;
-        private int _rectInMaxTime = int.MaxValue, _rectInMinTime = int.MinValue;
+        // control
+        protected readonly bool EnableLog;
+        private bool _hasStarted, _hasFinished;
 
-        private Mathe.RawRectangleF RtRect => new Mathe.RawRectangleF(_rtX, _rtY, _rtX + _rtW, _rtY + _rtH);
-        private Mathe.RawRectangleF RtInRect => new Mathe.RawRectangleF(_rtInX, _rtInY, _rtInX + _rtInW, _rtInY + _rtInH);
-        private float _rtOpacity;
-        private float _rtX, _rtY, _rtW, _rtH;
-        private float _rtInX, _rtInY, _rtInW, _rtInH;
+        #region Private statics
 
-        private Mathe.RawRectangleF TarRect => new Mathe.RawRectangleF(_tarX, _tarY, _tarX + _tarW, _tarY + _tarH);
-        private Mathe.RawRectangleF OriRect => new Mathe.RawRectangleF(_oriX, _oriY, _oriX + _oriW, _oriY + _oriH);
+        private TimeRange _fadeTime = TimeRange.Default;
+        private TimeRange _rectTime = TimeRange.Default;
+        private TimeRange _inRectTime = TimeRange.Default;
+        private Static<float> _opacity;
+        private Static<float> _x, _y, _w, _h;
+        private Static<float> _inX, _inY, _inW, _inH;
 
-        private Mathe.RawRectangleF TarInRect => new Mathe.RawRectangleF(_tarInX, _tarInY, _tarInX + _tarInW, _tarInY + _tarInH);
-        private Mathe.RawRectangleF OriInRect => new Mathe.RawRectangleF(_oriInX, _oriInY, _oriInX + _oriInW, _oriInY + _oriInH);
+        private int MaxTime => TimeRange.GetMaxTime(_fadeTime, _rectTime, _inRectTime);
+        private int MinTime => TimeRange.GetMinTime(_fadeTime, _rectTime, _inRectTime);
 
-        private float _tarOpacity, _oriOpacity;
-        private float _tarX, _tarY, _tarW, _tarH;
-        private float _oriX, _oriY, _oriW, _oriH;
-        private float _tarInX, _tarInY, _tarInW, _tarInH;
-        private float _oriInX, _oriInY, _oriInW, _oriInH;
+        private Static<Mathe.RawRectangleF> InRect => new Static<Mathe.RawRectangleF>
+        {
+            Default = new Mathe.RawRectangleF(_inX.Default, _inY.Default, _inX.Default + _inW.Default, _inY.Default + _inH.Default),
+            Source = new Mathe.RawRectangleF(_inX.Source, _inY.Source, _inX.Source + _inW.Source, _inY.Source + _inH.Source),
+            RealTime =
+                new Mathe.RawRectangleF(_inX.RealTime, _inY.RealTime, _inX.RealTime + _inW.RealTime, _inY.RealTime + _inH.RealTime),
+            Target = new Mathe.RawRectangleF(_inX.Target, _inY.Target, _inX.Target + _inW.Target, _inY.Target + _inH.Target)
+        };
 
-        private readonly bool _enableLog;
+        private Static<Mathe.RawRectangleF> Rect => new Static<Mathe.RawRectangleF>
+        {
+            Default = new Mathe.RawRectangleF(_x.Default, _y.Default, _x.Default + _w.Default, _y.Default + _h.Default),
+            Source = new Mathe.RawRectangleF(_x.Source, _y.Source, _x.Source + _w.Source, _y.Source + _h.Source),
+            RealTime =
+                new Mathe.RawRectangleF(_x.RealTime, _y.RealTime, _x.RealTime + _w.RealTime, _y.RealTime + _h.RealTime),
+            Target = new Mathe.RawRectangleF(_x.Target, _y.Target, _x.Target + _w.Target, _y.Target + _h.Target)
+        };
+
+        #endregion private statics
 
         public BitmapObject(D2D.RenderTarget target, D2D.Bitmap bitmap, Mathe.RawPoint posision, bool enableLog = false)
         {
-            _target = target;
-            _bitmap = bitmap;
-            _rtX = posision.X;
-            _rtY = posision.Y;
-            _rtW = bitmap.Size.Width;
-            _rtH = bitmap.Size.Height;
-            _tarX = _rtX;
-            _tarY = _rtY;
-            _tarW = _rtW;
-            _tarH = _rtH;
+            Target = target;
+            Bitmap = bitmap;
 
-            _rtInX = 0;
-            _rtInY = 0;
-            _rtInW = bitmap.Size.Width;
-            _rtInH = bitmap.Size.Height;
-            _tarInX = _rtInX;
-            _tarInY = _rtInY;
-            _tarInW = _rtInW;
-            _tarInH = _rtInH;
+            _x.RealTime = posision.X;
+            _y.RealTime = posision.Y;
+            _w.RealTime = bitmap.Size.Width;
+            _h.RealTime = bitmap.Size.Height;
+            _x.TargetToRealTime();
+            _y.TargetToRealTime();
+            _w.TargetToRealTime();
+            _h.TargetToRealTime();
 
-            _enableLog = enableLog;
+            _inX.RealTime = 0;
+            _inY.RealTime = 0;
+            _inW.RealTime = bitmap.Size.Width;
+            _inH.RealTime = bitmap.Size.Height;
+            _inX.TargetToRealTime();
+            _inY.TargetToRealTime();
+            _inW.TargetToRealTime();
+            _inH.TargetToRealTime();
+
+            EnableLog = enableLog;
         }
 
-        public override void Move(EasingEnum easingEnum, int startTime, int endTime, Mathe.RawPoint startPoint, Mathe.RawPoint endPoint)
+        public override void Move(EasingEnum easingEnum, int startTime, int endTime, Gdip.PointF startPoint, Gdip.PointF endPoint)
         {
-            if (_rectMaxTime == int.MaxValue || endTime > _rectMaxTime)
+            if (_rectTime.Max == int.MaxValue || endTime > _rectTime.Max)
             {
-                _rectMaxTime = endTime;
-                _tarX = endPoint.X;
-                _tarY = endPoint.Y;
+                _rectTime.Max = endTime;
+                _x.Target = endPoint.X;
+                _y.Target = endPoint.Y;
             }
 
-            // todo
+            if (_rectTime.Min == int.MinValue || startTime < _rectTime.Min)
+            {
+                _rectTime.Min = startTime;
+                _x.Source = startPoint.X;
+                _y.Source = startPoint.Y;
+            }
+
+            float ms = _watch.ElapsedMilliseconds;
+            if (!_hasFinished && ms <= _rectTime.Min)
+            {
+                _x.RealTimeToSource();
+                _y.RealTimeToSource();
+            }
+
+            if (!_hasFinished && ms >= startTime && ms <= endTime)
+            {
+                var t = (ms - startTime) / (endTime - startTime);
+                _x.RealTime = startPoint.X + (float)easingEnum.Ease(t) * (endPoint.X - startPoint.X);
+                _y.RealTime = startPoint.Y + (float)easingEnum.Ease(t) * (endPoint.Y - startPoint.Y);
+            }
+
+            if (ms >= _rectTime.Max)
+            {
+                _x.RealTimeToTarget();
+                _y.RealTimeToTarget();
+            }
         }
 
         public override void ScaleVec(EasingEnum easingEnum, int startTime, int endTime, float startWidth, float startHeight, float endWidth,
             float endHeight)
         {
-            if (_rectMaxTime == int.MaxValue || endTime > _rectMaxTime)
+            if (_rectTime.Max == int.MaxValue || endTime > _rectTime.Max)
             {
-                _rectMaxTime = endTime;
-                _tarW = endWidth;
-                _tarH = endHeight;
+                _rectTime.Max = endTime;
+                _w.Target = endWidth;
+                _h.Target = endHeight;
             }
 
             // todo
@@ -95,132 +137,138 @@ namespace OsuLivePlayer.Model.DxAnimation
 
         public override void Fade(EasingEnum easingEnum, int startTime, int endTime, float startOpacity, float endOpacity)
         {
-            if (_fadeMaxTime == int.MaxValue || endTime > _fadeMaxTime)
+            if (_fadeTime.Max == int.MaxValue || endTime > _fadeTime.Max)
             {
-                _fadeMaxTime = endTime;
-                _tarOpacity = endOpacity;
+                _fadeTime.Max = endTime;
+                _opacity.Target = endOpacity;
             }
 
-            if (_fadeMinTime == int.MinValue || startTime < _fadeMinTime)
+            if (_fadeTime.Min == int.MinValue || startTime < _fadeTime.Min)
             {
-                _fadeMinTime = startTime;
-                _oriOpacity = startOpacity;
+                _fadeTime.Min = startTime;
+                _opacity.Source = startOpacity;
             }
 
             float ms = _watch.ElapsedMilliseconds;
-            if (!_hasFinished && ms <= _fadeMinTime)
+            if (!_hasFinished && ms <= _fadeTime.Min)
             {
-                _rtOpacity = _oriOpacity;
+                _opacity.RealTimeToSource();
             }
             if (!_hasFinished && ms >= startTime && ms <= endTime)
             {
                 var t = (ms - startTime) / (endTime - startTime);
-                _rtOpacity = startOpacity + (float)easingEnum.Ease(t) * (endOpacity - startOpacity);
+                _opacity.RealTime = startOpacity + (float)easingEnum.Ease(t) * (endOpacity - startOpacity);
             }
 
-            if (ms >= _fadeMaxTime)
+            if (ms >= _fadeTime.Max)
             {
-                _rtOpacity = _tarOpacity;
+                _opacity.RealTimeToTarget();
             }
         }
 
+        /// <summary>
+        /// Do not use with any MOVE and any SCALE at same time!
+        /// </summary>
         public void FreeRect(EasingEnum easingEnum, int startTime, int endTime, Mathe.RawRectangleF startRect,
             Mathe.RawRectangleF endRect)
         {
-            if (_rectMaxTime == int.MaxValue || endTime > _rectMaxTime)
+            if (_rectTime.Max == int.MaxValue || endTime > _rectTime.Max)
             {
-                _rectMaxTime = endTime;
-                _tarX = endRect.Left;
-                _tarY = endRect.Top;
-                _tarW = endRect.Right - endRect.Left;
-                _tarH = endRect.Bottom - endRect.Top;
+                _rectTime.Max = endTime;
+                _x.Target = endRect.Left;
+                _y.Target = endRect.Top;
+                _w.Target = endRect.Right - endRect.Left;
+                _h.Target = endRect.Bottom - endRect.Top;
             }
 
-            if (_rectMinTime == int.MinValue || startTime < _rectMinTime)
+            if (_rectTime.Min == int.MinValue || startTime < _rectTime.Min)
             {
-                _rectMinTime = startTime;
-                _oriX = startRect.Left;
-                _oriY = startRect.Top;
-                _oriW = startRect.Right - startRect.Left;
-                _oriH = startRect.Bottom - startRect.Top;
+                _rectTime.Min = startTime;
+                _x.Source = startRect.Left;
+                _y.Source = startRect.Top;
+                _w.Source = startRect.Right - startRect.Left;
+                _h.Source = startRect.Bottom - startRect.Top;
             }
 
             float ms = _watch.ElapsedMilliseconds;
-            if (!_hasFinished && ms <= _rectMinTime)
+            if (!_hasFinished && ms <= _rectTime.Min)
             {
-                _rtX = _oriX;
-                _rtY = _oriY;
-                _rtW = _oriW;
-                _rtH = _oriH;
+                _x.RealTimeToSource();
+                _y.RealTimeToSource();
+                _w.RealTimeToSource();
+                _h.RealTimeToSource();
             }
 
             if (!_hasFinished && ms >= startTime && ms <= endTime)
             {
                 var t = (ms - startTime) / (endTime - startTime);
-                _rtX = startRect.Left + (float)easingEnum.Ease(t) * (endRect.Left - startRect.Left);
-                _rtY = startRect.Top + (float)easingEnum.Ease(t) * (endRect.Top - startRect.Top);
+                _x.RealTime = startRect.Left + (float)easingEnum.Ease(t) * (endRect.Left - startRect.Left);
+                _y.RealTime = startRect.Top + (float)easingEnum.Ease(t) * (endRect.Top - startRect.Top);
                 float r = startRect.Right + (float)easingEnum.Ease(t) * (endRect.Right - startRect.Right);
                 float b = startRect.Bottom + (float)easingEnum.Ease(t) * (endRect.Bottom - startRect.Bottom);
-                _rtW = r - _rtX;
-                _rtH = b - _rtY;
+                _w.RealTime = r - _x.RealTime;
+                _h.RealTime = b - _y.RealTime;
             }
 
-            if (ms >= _rectMaxTime)
+            if (ms >= _rectTime.Max)
             {
-                _rtX = _tarX;
-                _rtY = _tarY;
-                _rtW = _tarW;
-                _rtH = _tarH;
+                _x.RealTimeToTarget();
+                _y.RealTimeToTarget();
+                _w.RealTimeToTarget();
+                _h.RealTimeToTarget();
             }
         }
 
+        /// <summary>
+        /// todo: Still have bugs.
+        /// </summary>
         public void FreeCutRect(EasingEnum easingEnum, int startTime, int endTime, Mathe.RawRectangleF startRect,
             Mathe.RawRectangleF endRect)
         {
-            if (_rectInMaxTime == int.MaxValue || endTime > _rectInMaxTime)
+            if (_inRectTime.Max == int.MaxValue || endTime > _inRectTime.Max)
             {
-                _rectInMaxTime = endTime;
-                _tarInX = endRect.Left;
-                _tarInY = endRect.Top;
-                _tarInW = endRect.Right - endRect.Left;
-                _tarInH = endRect.Bottom - endRect.Top;
+                _inRectTime.Max = endTime;
+                _inX.Target = endRect.Left;
+                _inY.Target = endRect.Top;
+                _inW.Target = endRect.Right - endRect.Left;
+                _inH.Target = endRect.Bottom - endRect.Top;
             }
 
-            if (_rectInMinTime == int.MinValue || startTime < _rectInMinTime)
+            if (_inRectTime.Min == int.MinValue || startTime < _inRectTime.Min)
             {
-                _rectInMinTime = startTime;
-                _oriInX = startRect.Left;
-                _oriInY = startRect.Top;
-                _oriInW = startRect.Right - startRect.Left;
-                _oriInH = startRect.Bottom - startRect.Top;
+                _inRectTime.Min = startTime;
+                _inX.Source = startRect.Left;
+                _inY.Source = startRect.Top;
+                _inW.Source = startRect.Right - startRect.Left;
+                _inH.Source = startRect.Bottom - startRect.Top;
             }
 
             float ms = _watch.ElapsedMilliseconds;
-            if (!_hasFinished && ms <= _rectInMinTime)
+            if (!_hasFinished && ms <= _inRectTime.Min)
             {
-                _rtInX = _oriInX;
-                _rtInY = _oriInY;
-                _rtInW = _oriInW;
-                _rtInH = _oriInH;
+                _inX.RealTimeToSource();
+                _inY.RealTimeToSource();
+                _inW.RealTimeToSource();
+                _inH.RealTimeToSource();
             }
 
             if (!_hasFinished && ms >= startTime && ms <= endTime)
             {
                 var t = (ms - startTime) / (endTime - startTime);
-                _rtInX = startRect.Left + (float)easingEnum.Ease(t) * (endRect.Left - startRect.Left);
-                _rtInY = startRect.Top + (float)easingEnum.Ease(t) * (endRect.Top - startRect.Top);
+                _inX.RealTime = startRect.Left + (float)easingEnum.Ease(t) * (endRect.Left - startRect.Left);
+                _inY.RealTime = startRect.Top + (float)easingEnum.Ease(t) * (endRect.Top - startRect.Top);
                 float r = startRect.Right + (float)easingEnum.Ease(t) * (endRect.Right - startRect.Right);
                 float b = startRect.Bottom + (float)easingEnum.Ease(t) * (endRect.Bottom - startRect.Bottom);
-                _rtInW = r - _rtInX;
-                _rtInH = b - _rtInY;
+                _inW.RealTime = r - _inX.RealTime;
+                _inH.RealTime = b - _inY.RealTime;
             }
 
-            if (ms >= _rectInMaxTime)
+            if (ms >= _inRectTime.Max)
             {
-                _rtInX = _tarInX;
-                _rtInY = _tarInY;
-                _rtInW = _tarInW;
-                _rtInH = _tarInH;
+                _inX.RealTimeToTarget();
+                _inY.RealTimeToTarget();
+                _inW.RealTimeToTarget();
+                _inH.RealTimeToTarget();
             }
         }
 
@@ -242,7 +290,8 @@ namespace OsuLivePlayer.Model.DxAnimation
 
                 if (!_hasFinished)
                 {
-                    if (_enableLog) LogUtil.LogInfo($"[{RtInRect.Left},{RtInRect.Top},{RtInRect.Right},{RtInRect.Bottom}]");
+                    if (EnableLog) LogUtil.LogInfo(string.Format("[{0},{1},{2},{3}]", InRect.RealTime.Left,
+                        InRect.RealTime.Top, InRect.RealTime.Right, InRect.RealTime.Bottom));
                 }
             }
         }
@@ -251,13 +300,22 @@ namespace OsuLivePlayer.Model.DxAnimation
         {
             if (!_hasFinished)
             {
-                _target.DrawBitmap(_bitmap, RtRect, _rtOpacity, D2D.BitmapInterpolationMode.Linear/*, RtInRect*/); //todo
+                Target.DrawBitmap(Bitmap, Rect.RealTime, _opacity.RealTime, D2D.BitmapInterpolationMode.Linear/*, RtInRect*/); //todo: bug
             }
             else
             {
-                if (_enableLog) LogUtil.LogInfo($"[{TarInRect.Left},{TarInRect.Top},{TarInRect.Right},{TarInRect.Bottom}]");
-                _target.DrawBitmap(_bitmap, TarRect, _tarOpacity, D2D.BitmapInterpolationMode.Linear/*, TarInRect*/); //todo
+                if (EnableLog) LogUtil.LogInfo(string.Format("[{0},{1},{2},{3}]", InRect.RealTime.Left,
+                    InRect.RealTime.Top, InRect.RealTime.Right, InRect.RealTime.Bottom));
+                Target.DrawBitmap(Bitmap, Rect.Target, _opacity.Target, D2D.BitmapInterpolationMode.Linear/*, TarInRect*/); //todo: bug
             }
+        }
+
+        public BitmapObject Reset(Mathe.RawPoint posision) => new BitmapObject(Target, Bitmap, posision, EnableLog);
+
+        public void Dispose()
+        {
+            Target?.Dispose();
+            Bitmap?.Dispose();
         }
     }
 }

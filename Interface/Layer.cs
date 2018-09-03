@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OsuLivePlayer.Model;
+using OsuLivePlayer.Model.OsuStatus;
 using OsuLivePlayer.Util.DxUtil;
 using SharpDX.Direct2D1;
 
@@ -11,7 +12,7 @@ namespace OsuLivePlayer.Interface
 {
     public abstract class Layer
     {
-        protected Layer(RenderTarget renderTarget, DxLoadSettings settings, OsuModel osuModel)
+        protected Layer(RenderTarget renderTarget, DxLoadObject settings, OsuModel osuModel)
         {
             OsuModel = osuModel;
             Settings = settings;
@@ -19,7 +20,7 @@ namespace OsuLivePlayer.Interface
         }
 
         protected readonly OsuModel OsuModel;
-        protected readonly DxLoadSettings Settings;
+        protected readonly DxLoadObject Settings;
         protected readonly RenderTarget RenderTarget;
         public abstract void Measure();
         public abstract void Draw();

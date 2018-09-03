@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using OsuLivePlayer.Interface;
 using OsuLivePlayer.Model;
 using OsuLivePlayer.Model.DxAnimation;
+using OsuLivePlayer.Model.OsuStatus;
 using OsuLivePlayer.Util;
 using OsuLivePlayer.Util.DxUtil;
 using OsuRTDataProvider.Listen;
@@ -30,23 +31,23 @@ namespace OsuLivePlayer.Layer.Dx
         private bool _lastBgIsNull;
 
         private readonly OsuListenerManager.OsuStatus _status;
-        private static readonly Random Rnd = new Random();
+        private readonly Random _rnd = new Random();
 
         // Overall control
-        private bool _isStart;
+        private static bool _isStart;
 
         // Effect control;
         private int _transformStyle;
 
-        public BgDxLayer(D2D.RenderTarget renderTarget, DxLoadSettings settings, OsuModel osuModel)
+        public BgDxLayer(D2D.RenderTarget renderTarget, DxLoadObject settings, OsuModel osuModel)
             : base(renderTarget, settings, osuModel)
         {
             _currentMapPath = "";
             _status = OsuModel.Status;
             string defName = "default.png";
             string covName = "cover.png";
-            var defBgPath = Path.Combine(OsuLivePlayerPlugin.Config.WorkPath, defName);
-            var covBgPath = Path.Combine(OsuLivePlayerPlugin.Config.WorkPath, covName);
+            var defBgPath = Path.Combine(OsuLivePlayerPlugin.GeneralConfig.WorkPath, defName);
+            var covBgPath = Path.Combine(OsuLivePlayerPlugin.GeneralConfig.WorkPath, covName);
             if (File.Exists(defBgPath))
                 _defaultBg = renderTarget.LoadBitmap(defBgPath);
             else
@@ -57,11 +58,11 @@ namespace OsuLivePlayer.Layer.Dx
             else
                 LogUtil.LogError($"Can not find \"{covName}\"");
 
-            var size = Settings.RenderSettings.WindowSize;
+            var size = Settings.Render.WindowSize;
             _windowRect = new Mathe.RawRectangleF(0, 0, size.Width, size.Height);
         }
 
-        public override void Measure()
+        public override void Measure() //todo: Will lead to NullReferenceException when recreated window on some maps: s/552702
         {
             if (!_isStart && _status != OsuModel.Status)
                 _isStart = true;
@@ -90,11 +91,16 @@ namespace OsuLivePlayer.Layer.Dx
                     return;
 
                 _fixedRectOld = _fixedRect;
+
                 _fixedRect = GetBgPosition(_newBg.Size);
-                var size = Settings.RenderSettings.WindowSize;
-                if (_newBg != null) _newBgObj = new BitmapObject(RenderTarget, _newBg, new Mathe.RawPoint(size.Width / 2, size.Height / 2));
-                if (_oldBg != null) _oldBgObj = new BitmapObject(RenderTarget, _oldBg, new Mathe.RawPoint(size.Width / 2, size.Height / 2));
-                _transformStyle = Rnd.Next(0, 4);
+                var size = Settings.Render.WindowSize;
+                if (_newBg != null)
+                    _newBgObj = new BitmapObject(RenderTarget, _newBg,
+                        new Mathe.RawPoint(size.Width / 2, size.Height / 2));
+                if (_oldBg != null)
+                    _oldBgObj = new BitmapObject(RenderTarget, _oldBg,
+                        new Mathe.RawPoint(size.Width / 2, size.Height / 2));
+                _transformStyle = _rnd.Next(0, 4);
             }
         }
 
@@ -151,13 +157,17 @@ namespace OsuLivePlayer.Layer.Dx
 
         public override void Dispose()
         {
-            _oldBg.Dispose();
-            _newBg.Dispose();
+            _defaultBg?.Dispose();
+            _coverBg?.Dispose();
+            _oldBg?.Dispose();
+            _newBg?.Dispose();
+            _newBgObj?.Dispose();
+            _oldBgObj?.Dispose();
         }
 
         private Mathe.RawRectangleF GetBgPosition(Size2F originSize)
         {
-            var windowSize = Settings.RenderSettings.WindowSize;
+            var windowSize = Settings.Render.WindowSize;
             var windowRatio = windowSize.Width / (float)windowSize.Height;
 
             var bgRatio = originSize.Width / originSize.Height;

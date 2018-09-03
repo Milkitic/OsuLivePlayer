@@ -1,5 +1,8 @@
 ﻿using System.IO;
 using System.Linq;
+using OsuLivePlayer.Config;
+using OsuLivePlayer.Controller;
+using OsuLivePlayer.Model;
 using OsuLivePlayer.Util;
 using OsuLivePlayer.Util.DxUtil;
 using OsuRTDataProvider;
@@ -8,17 +11,21 @@ using Sync.Tools;
 
 namespace OsuLivePlayer
 {
-    [SyncRequirePlugin(typeof(OsuRTDataProviderPlugin))]
+    // [SyncRequirePlugin(typeof(OsuRTDataProviderPlugin))]
     public class OsuLivePlayerPlugin : Plugin
     {
         private OrtdpController _ortdpController;
-        public static readonly Config Config = new Config();
+        public static readonly GeneralConfig GeneralConfig = new GeneralConfig();
+        public static readonly DisplayConfig DisplayConfig = new DisplayConfig();
+
+        public static DxLoadObject Object;
         private bool _initSuccessfully = true;
 
         public OsuLivePlayerPlugin() : base(typeof(OsuLivePlayerPlugin).Name, "yf_extension")
         {
             var configManager = new PluginConfigurationManager(this);
-            configManager.AddItem(Config);
+            configManager.AddItem(GeneralConfig);
+            configManager.AddItem(DisplayConfig);
 
             EventBus.BindEvent<PluginEvents.LoadCompleteEvent>(OnLoadComplete);
             EventBus.BindEvent<PluginEvents.ProgramReadyEvent>(OnProgramReady);
@@ -27,7 +34,9 @@ namespace OsuLivePlayer
         private void OnProgramReady(PluginEvents.ProgramReadyEvent e)
         {
             if (!_initSuccessfully) return;
-            FormController.CreateDirectXForm(DxLoadSettings.Default, OrtdpController.OsuModel);
+            Object = DxLoadObject.Default;
+            Object.ReloadFromConfig(DisplayConfig);
+            //FormController.CreateDirectXForm(Object, OrtdpController.OsuModel);
         }
 
         public override void OnEnable()
@@ -54,8 +63,8 @@ namespace OsuLivePlayer
                 return;
             }
 
-            if (!Directory.Exists(Config.WorkPath))
-                Directory.CreateDirectory(Config.WorkPath);
+            if (!Directory.Exists(GeneralConfig.WorkPath))
+                Directory.CreateDirectory(GeneralConfig.WorkPath);
 
             LogUtil.LogInfo("Ortdp has been loaded.");
             _ortdpController = new OrtdpController(ortdpPlugin);

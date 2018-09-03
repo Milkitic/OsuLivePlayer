@@ -3,26 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SharpDX.Mathematics.Interop;
+using OsuLivePlayer.Util.DxUtil;
+using OsuLivePlayer.Util.GdipUtil;
+using SharpDX.Direct2D1;
+using Gdip = System.Drawing;
+using Mathe = SharpDX.Mathematics.Interop;
 
 namespace OsuLivePlayer.Model.DxAnimation
 {
-    class StringObject:AnimationObject
+    internal class StringObject : BitmapObject
     {
-        public override void Fade(EasingEnum easingEnum, int startTime, int endTime, float startOpacity, float endOpacity)
+        public StringObject(RenderTarget target, string words, Gdip.Font font, Gdip.Brush brush, Mathe.RawPoint posision,
+            bool enableLog = false) : base(target, GetStringBitmap(target, words, font, brush), posision, enableLog) { }
+
+        public StringObject(RenderTarget target, Bitmap bitmap, Mathe.RawPoint posision, bool enableLog = false)
+            : base(target, bitmap, posision, enableLog)
         {
-            throw new NotImplementedException();
         }
 
-        public override void Move(EasingEnum easingEnum, int startTime, int endTime, RawPoint startPoint, RawPoint endPoint)
-        {
-            throw new NotImplementedException();
-        }
+        private static Bitmap GetStringBitmap(RenderTarget target, string words, Gdip.Font font, Gdip.Brush brush) =>
+            target.LoadBitmap(StringUtil.GetStringBitmap(words, font, brush));
 
-        public override void ScaleVec(EasingEnum easingEnum, int startTime, int endTime, float startWidth, float startHeight, float endWidth,
-            float endHeight)
-        {
-            throw new NotImplementedException();
-        }
+        public new StringObject Reset(Mathe.RawPoint posision) => new StringObject(Target, Bitmap, posision, EnableLog);
     }
 }

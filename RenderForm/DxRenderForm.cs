@@ -8,6 +8,7 @@ using System.Windows.Forms.VisualStyles;
 using OsuLivePlayer.Interface;
 using OsuLivePlayer.Layer.Dx;
 using OsuLivePlayer.Model;
+using OsuLivePlayer.Model.OsuStatus;
 using OsuLivePlayer.Util;
 using OsuLivePlayer.Util.DxUtil;
 using OsuRTDataProvider.Listen;
@@ -22,36 +23,39 @@ namespace OsuLivePlayer.RenderForm
 {
     internal class DxRenderForm : Form
     {
-        private static D2D.Factory Factory { get; } = new D2D.Factory(); // Factory for creating 2D elements
-        private static D2D.RenderTarget RenderTarget { get; set; } // Target of rendering
-        public static List<DxLayer> LayerList { get; set; }
+        private D2D.Factory Factory { get; } = new D2D.Factory(); // Factory for creating 2D elements
+        private D2D.RenderTarget RenderTarget { get; set; } // Target of rendering
+        public List<DxLayer> LayerList { get; set; }
 
         private Task[] _renderTask;
 
         private readonly bool _useVsync;
         private bool _preferUnicode;
-        private readonly DxLoadSettings _settings;
+        private readonly DxLoadObject _obj;
         private readonly OsuModel _osuModel;
 
-        public DxRenderForm(DxLoadSettings settings, OsuModel osuModel)
+        public DxRenderForm(DxLoadObject obj, OsuModel osuModel)
         {
-            _settings = settings;
+            _obj = obj;
             _osuModel = osuModel;
 
             // Window settings
-            ClientSize = settings.RenderSettings.WindowSize;
+            ClientSize = obj.Render.WindowSize;
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
-
+            //TopMost = true;
             // Render settings
-            _useVsync = settings.RenderSettings.UseVsync;
+            _useVsync = obj.Render.UseVsync;
 
             // Preference settings
-            _preferUnicode = settings.PreferenceSettings.PreferUnicode;
+            _preferUnicode = obj.Preference.PreferUnicode;
 
             // Events
             Load += OnFormLoad;
+            FormClosed += OnFormClosed;
         }
+
+
 
         private void OnFormLoad(object sender, EventArgs e)
         {
@@ -83,9 +87,10 @@ namespace OsuLivePlayer.RenderForm
 
             LayerList = new List<DxLayer>
             {
-                new BgDxLayer(RenderTarget, _settings, _osuModel),
-                new SongInfoDxLayer(RenderTarget, _settings, _osuModel),
-                new FpsDxLayer(RenderTarget, _settings, _osuModel),
+                new BgDxLayer(RenderTarget, _obj, _osuModel),
+                new SongInfoDxLayer(RenderTarget, _obj, _osuModel),
+                new FpsDxLayer(RenderTarget, _obj, _osuModel),
+                //new TestLayer(RenderTarget, _settings, _osuModel),
             };
 
             _renderTask = new Task[LayerList.Count];
@@ -95,6 +100,14 @@ namespace OsuLivePlayer.RenderForm
 
             Text = "Osu!Live Player (DX)";
             LogUtil.LogInfo("Form loaded.");
+        }
+
+        private void OnFormClosed(object sender, FormClosedEventArgs e)
+        {
+            Factory?.Dispose();
+            RenderTarget?.Dispose();
+            foreach (var item in LayerList)
+                item?.Dispose();
         }
 
         private void OnPaint(object sender, PaintEventArgs e)
@@ -112,6 +125,7 @@ namespace OsuLivePlayer.RenderForm
                 var item = LayerList[i];
                 _renderTask[i] = Task.Run(() => { item.Measure(); });
             }
+
             Task.WaitAll(_renderTask);
 
             foreach (var item in LayerList)
@@ -122,6 +136,5 @@ namespace OsuLivePlayer.RenderForm
 
             Invalidate();
         }
-
     }
 }
