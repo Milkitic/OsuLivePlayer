@@ -11,7 +11,7 @@ using Sync.Tools;
 
 namespace OsuLivePlayer
 {
-    // [SyncRequirePlugin(typeof(OsuRTDataProviderPlugin))]
+    [SyncRequirePlugin(typeof(OsuRTDataProviderPlugin))]
     public class OsuLivePlayerPlugin : Plugin
     {
         private OrtdpController _ortdpController;
