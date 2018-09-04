@@ -33,6 +33,8 @@ namespace OsuLivePlayer.Layer.Dx
         private float[] _newArtistRndX, _newArtistRndY;
         private float[] _oldTitleRndX, _oldTitleRndY;
         private float[] _oldArtistRndX, _oldArtistRndY;
+        private float[] _newTitleRndR, _oldTitleRndR;
+        private float[] _newArtistRndR, _oldArtistRndR;
 
         private readonly OsuListenerManager.OsuStatus _status;
         private readonly Gdip.FontFamily _westernF, _easternF;
@@ -44,8 +46,8 @@ namespace OsuLivePlayer.Layer.Dx
         private bool PreferUcode => Settings.Preference.PreferUnicode;
 
         // Effect control
-        private int _artistX = 50, _artistY = 30; // todo: Make them configurable
-        private int _titleX = 50, _titleY = 65;
+        private int _artistX = 50, _artistY = 30 + 580; // todo: Make them configurable
+        private int _titleX = 50, _titleY = 65 + 580;
 
         private readonly Random _rnd = new Random();
 
@@ -107,20 +109,24 @@ namespace OsuLivePlayer.Layer.Dx
 
                 _oldArtistRndX = _newArtistRndX;
                 _oldArtistRndY = _newArtistRndY;
+                _oldArtistRndR = _newArtistRndR;
+
                 for (var i = 0; i < _oldArtistRndX?.Length; i++)
                 {
                     _oldArtistRndX[i] = (float)_rnd.NextDouble() * 50 - 100;
                     _oldArtistRndY[i] = (float)_rnd.NextDouble() * 100 - 50;
+                    _oldArtistRndR[i] = (float)_rnd.NextDouble() * 360 - 180;
                 }
 
                 _newArtistRndX = new float[artist.Length];
                 _newArtistRndY = new float[artist.Length];
-
+                _newArtistRndR = new float[artist.Length];
                 for (var i = 0; i < _newArtistObjs.Length; i++)
                 {
                     _newArtistObjs[i] = new StringObject(RenderTarget, bmps[i], Origin.TopLeft, new Mathe.RawPoint(0, 0));
                     _newArtistRndX[i] = (float)_rnd.NextDouble() * 50 + 50;
                     _newArtistRndY[i] = (float)_rnd.NextDouble() * 100 - 50;
+                    _newArtistRndR[i] = (float)_rnd.NextDouble() * 120 - 60;
                 }
             }
 
@@ -138,20 +144,23 @@ namespace OsuLivePlayer.Layer.Dx
 
                 _oldTitleRndX = _newTitleRndX;
                 _oldTitleRndY = _newTitleRndY;
+                _oldTitleRndR = _newTitleRndR;
                 for (var i = 0; i < _oldTitleRndX?.Length; i++)
                 {
                     _oldTitleRndX[i] = (float)_rnd.NextDouble() * 50 - 100;
                     _oldTitleRndY[i] = (float)_rnd.NextDouble() * 100 - 50;
+                    _oldTitleRndR[i] = (float)_rnd.NextDouble() * 360 - 180;
                 }
 
                 _newTitleRndX = new float[title.Length];
                 _newTitleRndY = new float[title.Length];
-
+                _newTitleRndR = new float[title.Length];
                 for (var i = 0; i < title.Length; i++)
                 {
                     _newTitleObjs[i] = new StringObject(RenderTarget, bmps[i], Origin.TopLeft, new Mathe.RawPoint(0, 0));
                     _newTitleRndX[i] = (float)_rnd.NextDouble() * 50 + 50;
                     _newTitleRndY[i] = (float)_rnd.NextDouble() * 100 - 50;
+                    _newTitleRndR[i] = (float)_rnd.NextDouble() * 120 - 60;
                 }
             }
         }
@@ -175,6 +184,7 @@ namespace OsuLivePlayer.Layer.Dx
                         new Gdip.PointF(_artistX + _newArtistRndX[i] + xOffset, _artistY + _newArtistRndY[i]),
                         new Gdip.PointF(_artistX + xOffset, _artistY));
                     item.Fade(EasingEnum.EasingOut, 0 + i * stepT, effctT + i * stepT, 0, 1);
+                    item.Rotate(EasingEnum.QuadInOut, 0 + i * stepT, effctT + i * stepT, _newArtistRndR[i], 0);
                     item.EndDraw();
                     xOffset += item.Width - fixS;
                 }
@@ -193,6 +203,7 @@ namespace OsuLivePlayer.Layer.Dx
                         new Gdip.PointF(_titleX + _newTitleRndX[i] + xOffset, _titleY + _newTitleRndY[i]),
                         new Gdip.PointF(_titleX + xOffset, _titleY));
                     item.Fade(EasingEnum.EasingOut, 0 + i * stepT, effctT + i * stepT, 0, 1);
+                    item.Rotate(EasingEnum.QuadInOut, 0 + i * stepT, effctT + i * stepT, _newTitleRndR[i], 0);
                     item.EndDraw();
                     xOffset += item.Width - fix;
                 }
@@ -209,6 +220,7 @@ namespace OsuLivePlayer.Layer.Dx
                         new Gdip.PointF(_artistX + xOffset, _artistY),
                         new Gdip.PointF(_artistX + _oldArtistRndX[i] + xOffset, _artistY + _oldArtistRndY[i]));
                     item.Fade(EasingEnum.EasingIn, 0 + i * stepT, effctT + i * stepT, 1, 0);
+                    item.Rotate(EasingEnum.QuadInOut, 0 + i * stepT, effctT + i * stepT, 0, _oldArtistRndR[i]);
                     item.EndDraw();
                     xOffset += item.Width - fixS;
                 }
@@ -225,6 +237,7 @@ namespace OsuLivePlayer.Layer.Dx
                         new Gdip.PointF(_titleX + xOffset, _titleY),
                         new Gdip.PointF(_titleX + _oldTitleRndX[i] + xOffset, _titleY + _oldTitleRndY[i]));
                     item.Fade(EasingEnum.EasingIn, 0 + i * stepT, effctT + i * stepT, 1, 0);
+                    item.Rotate(EasingEnum.QuadInOut, 0 + i * stepT, effctT + i * stepT, 0, _oldTitleRndR[i]);
                     item.EndDraw();
                     xOffset += item.Width - fix;
                 }

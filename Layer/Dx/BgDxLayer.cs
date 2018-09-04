@@ -8,6 +8,7 @@ using OsuRTDataProvider.Listen;
 using SharpDX;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -38,6 +39,7 @@ namespace OsuLivePlayer.Layer.Dx
 
         // Effect control;
         private int _transformStyle;
+        private Stopwatch sw = new Stopwatch();
 
         public BgDxLayer(D2D.RenderTarget renderTarget, DxLoadObject settings, OsuModel osuModel)
             : base(renderTarget, settings, osuModel)
@@ -100,7 +102,10 @@ namespace OsuLivePlayer.Layer.Dx
                 if (_oldBg != null)
                     _oldBgObj = new BitmapObject(RenderTarget, _oldBg, Origin.Default,
                         new Mathe.RawPoint(size.Width / 2, size.Height / 2));
-                _transformStyle = _rnd.Next(0, 4);
+                _transformStyle = _rnd.Next(0, 3);
+                if (sw.ElapsedMilliseconds < 600 && sw.ElapsedMilliseconds != 0)
+                    _transformStyle = 99;
+                sw.Restart();
             }
         }
 
@@ -132,18 +137,18 @@ namespace OsuLivePlayer.Layer.Dx
                         _newBgObj.Fade(EasingEnum.EasingOut, 0, 300, 0, 1);
                         _newBgObj.FreeRect(EasingEnum.EasingOut, 0, 300, _fixedRect, _fixedRect);
                         break;
-                    case 3:
-                        _newBgObj.Fade(EasingEnum.EasingOut, 0, 100, 0, 1);
-                        _newBgObj.FreeCutRect(EasingEnum.ElasticHalfOut, 0, 1000,
-                            new Mathe.RawRectangleF(0, 0, _newBg.Size.Width / 2f, _newBg.Size.Height),
-                            new Mathe.RawRectangleF(0, 0, _newBg.Size.Width, _newBg.Size.Height));
-                        _newBgObj.FreeRect(EasingEnum.ElasticHalfOut, 0, 300, _fixedRect, _fixedRect);
-                        break;
-                    default:
+                    case 2:
                         _newBgObj.Fade(EasingEnum.EasingOut, 0, 300, 0, 1);
                         _newBgObj.FreeRect(EasingEnum.EasingOut, 0, 300,
                             new Mathe.RawRectangleF(_fixedRect.Left + w / 2, _fixedRect.Top + h / 2,
                                 _fixedRect.Right - w / 2, _fixedRect.Bottom - h / 2), _fixedRect);
+                        break;
+                    default:
+                        _newBgObj.Fade(EasingEnum.EasingOut, 0, 100, 0, 1);
+                        _newBgObj.Rotate(EasingEnum.ElasticHalfOut, 0, 300, 30, 0);
+                        _newBgObj.FreeRect(EasingEnum.ElasticHalfOut, 0, 300,
+                            new Mathe.RawRectangleF(_fixedRect.Left + w, _fixedRect.Top + h * 2,
+                                _fixedRect.Right - w * 2, _fixedRect.Bottom - h * 2), _fixedRect);
                         break;
                 }
 
