@@ -14,7 +14,6 @@ using OsuRTDataProvider.Listen;
 using SharpDX;
 using D2D = SharpDX.Direct2D1;
 using WIC = SharpDX.WIC;
-using Mathe = SharpDX.Mathematics.Interop;
 
 namespace OsuLivePlayer.Layer.Dx
 {
@@ -23,8 +22,8 @@ namespace OsuLivePlayer.Layer.Dx
         private readonly D2D.Bitmap _defaultBg, _coverBg;
 
         private D2D.Bitmap _oldBg, _newBg;
-        private Mathe.RawRectangleF _fixedRectOld, _fixedRect;
-        private readonly Mathe.RawRectangleF _windowRect;
+        private RectangleF _fixedRectOld, _fixedRect;
+        private readonly RectangleF _windowRect;
 
         private string _currentMapPath;
         private BitmapObject _newBgObj, _oldBgObj;
@@ -59,7 +58,7 @@ namespace OsuLivePlayer.Layer.Dx
                 LogUtil.LogError($"Can not find \"{covName}\"");
 
             var size = Settings.Render.WindowSize;
-            _windowRect = new Mathe.RawRectangleF(0, 0, size.Width, size.Height);
+            _windowRect = new RectangleF(0, 0, size.Width, size.Height);
         }
 
         public override void Measure() //todo: Will lead to NullReferenceException when recreated window on some maps: s/552702
@@ -96,16 +95,22 @@ namespace OsuLivePlayer.Layer.Dx
                 var size = Settings.Render.WindowSize;
                 if (_newBg != null)
                     _newBgObj = new BitmapObject(RenderTarget, _newBg,
-                        new Mathe.RawPoint(size.Width / 2, size.Height / 2));
+                        new Point(size.Width / 2, size.Height / 2));
                 if (_oldBg != null)
                     _oldBgObj = new BitmapObject(RenderTarget, _oldBg,
-                        new Mathe.RawPoint(size.Width / 2, size.Height / 2));
+                        new Point(size.Width / 2, size.Height / 2));
                 _transformStyle = _rnd.Next(0, 4);
             }
         }
 
         public override void Draw()
         {
+            RenderTarget.Transform = new Matrix3x2
+            {
+                M11 = 1f, M12 = 0f,
+                M21 = 0f, M22 = 1f,
+                M31 = 100, M32 = 100
+            };
             if (!_isStart) return;
 
             if (_oldBg != null)
@@ -125,7 +130,7 @@ namespace OsuLivePlayer.Layer.Dx
                     case 0:
                         _newBgObj.Fade(EasingEnum.EasingOut, 0, 300, 0, 1);
                         _newBgObj.FreeRect(EasingEnum.EasingOut, 0, 300,
-                            new Mathe.RawRectangleF(_fixedRect.Left - w / 2, _fixedRect.Top - h / 2,
+                            new RectangleF(_fixedRect.Left - w / 2, _fixedRect.Top - h / 2,
                                 _fixedRect.Right + w / 2, _fixedRect.Bottom + h / 2), _fixedRect);
                         break;
                     case 1:
@@ -135,14 +140,14 @@ namespace OsuLivePlayer.Layer.Dx
                     case 3:
                         _newBgObj.Fade(EasingEnum.EasingOut, 0, 100, 0, 1);
                         _newBgObj.FreeCutRect(EasingEnum.ElasticHalfOut, 0, 1000,
-                            new Mathe.RawRectangleF(0, 0, _newBg.Size.Width / 2f, _newBg.Size.Height),
-                            new Mathe.RawRectangleF(0, 0, _newBg.Size.Width, _newBg.Size.Height));
+                            new RectangleF(0, 0, _newBg.Size.Width / 2f, _newBg.Size.Height),
+                            new RectangleF(0, 0, _newBg.Size.Width, _newBg.Size.Height));
                         _newBgObj.FreeRect(EasingEnum.ElasticHalfOut, 0, 300, _fixedRect, _fixedRect);
                         break;
                     default:
                         _newBgObj.Fade(EasingEnum.EasingOut, 0, 300, 0, 1);
                         _newBgObj.FreeRect(EasingEnum.EasingOut, 0, 300,
-                            new Mathe.RawRectangleF(_fixedRect.Left + w / 2, _fixedRect.Top + h / 2,
+                            new RectangleF(_fixedRect.Left + w / 2, _fixedRect.Top + h / 2,
                                 _fixedRect.Right - w / 2, _fixedRect.Bottom - h / 2), _fixedRect);
                         break;
                 }
@@ -152,7 +157,13 @@ namespace OsuLivePlayer.Layer.Dx
 
             if (_coverBg != null)
                 RenderTarget.DrawBitmap(_coverBg, _windowRect, 1, D2D.BitmapInterpolationMode.Linear);
-            // todo
+
+            RenderTarget.Transform = new Matrix3x2
+            {
+                M11 = 1f, M12 = 0f,
+                M21 = 0f, M22 = 1f,
+                M31 = 0, M32 = 0
+            };
         }
 
         public override void Dispose()
@@ -165,7 +176,7 @@ namespace OsuLivePlayer.Layer.Dx
             _oldBgObj?.Dispose();
         }
 
-        private Mathe.RawRectangleF GetBgPosition(Size2F originSize)
+        private RectangleF GetBgPosition(Size2F originSize)
         {
             var windowSize = Settings.Render.WindowSize;
             var windowRatio = windowSize.Width / (float)windowSize.Height;
@@ -180,7 +191,7 @@ namespace OsuLivePlayer.Layer.Dx
                 float width = originSize.Width * scale;
                 float x = -(width - windowSize.Width) / 2;
                 float y = 0;
-                return new Mathe.RawRectangleF(x, y, x + width, y + height);
+                return new RectangleF(x, y, x + width, y + height);
             }
             else // more height
             {
@@ -189,7 +200,7 @@ namespace OsuLivePlayer.Layer.Dx
                 float height = originSize.Height * scale;
                 float x = 0;
                 float y = -(height - windowSize.Height) / 2;
-                return new Mathe.RawRectangleF(x, y, x + width, y + height);
+                return new RectangleF(x, y, x + width, y + height);
             }
         }
     }

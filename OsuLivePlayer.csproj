@@ -44,6 +44,9 @@
     <Reference Include="SharpDX.DXGI, Version=4.2.0.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpDX.DXGI.4.2.0\lib\net45\SharpDX.DXGI.dll</HintPath>
     </Reference>
+    <Reference Include="SharpDX.Mathematics, Version=4.2.0.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpDX.Mathematics.4.2.0\lib\net45\SharpDX.Mathematics.dll</HintPath>
+    </Reference>
     <Reference Include="Sync">
       <HintPath>D:\Program Files (x86)\Sync\Sync.exe</HintPath>
     </Reference>
@@ -73,7 +76,7 @@
     <Compile Include="Model\DxLoadObject.cs" />
     <Compile Include="Controller\FormController.cs" />
     <Compile Include="Interface\Layer.cs" />
-    <Compile Include="RenderForm\DxRenderForm.cs">
+    <Compile Include="Render\DxRenderForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Model\OsuStatus\GamePlay.cs" />
@@ -91,7 +94,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="RenderForm\DxRenderForm.resx">
+    <EmbeddedResource Include="Render\DxRenderForm.resx">
       <DependentUpon>DxRenderForm.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>

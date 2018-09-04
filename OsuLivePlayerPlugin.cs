@@ -18,7 +18,7 @@ namespace OsuLivePlayer
         public static readonly GeneralConfig GeneralConfig = new GeneralConfig();
         public static readonly DisplayConfig DisplayConfig = new DisplayConfig();
 
-        public static DxLoadObject Object;
+        public static DxLoadObject Settings;
         private bool _initSuccessfully = true;
 
         public OsuLivePlayerPlugin() : base(typeof(OsuLivePlayerPlugin).Name, "yf_extension")
@@ -34,8 +34,8 @@ namespace OsuLivePlayer
         private void OnProgramReady(PluginEvents.ProgramReadyEvent e)
         {
             if (!_initSuccessfully) return;
-            Object = DxLoadObject.Default;
-            Object.ReloadFromConfig(DisplayConfig);
+            Settings = DxLoadObject.Default;
+            Settings.ReloadFromConfig(DisplayConfig);
             //FormController.CreateDirectXForm(Object, OrtdpController.OsuModel);
         }
 

@@ -1,7 +1,7 @@
-﻿using System.Drawing;
-using OsuLivePlayer.Config;
+﻿using OsuLivePlayer.Config;
 using OsuLivePlayer.Controller;
 using OsuLivePlayer.Util;
+using System.Drawing;
 
 namespace OsuLivePlayer.Model
 {
@@ -31,6 +31,12 @@ namespace OsuLivePlayer.Model
                 LogUtil.LogSuccess("Metadata In Original Language: " + (Preference.PreferUnicode ? "On" : "Off"));
             }
 
+            if (Render.LimitFps != config.LimitFps.ToInt())
+            {
+                Render.LimitFps = config.LimitFps.ToInt();
+                LogUtil.LogSuccess("Limit Fps: " + Render.LimitFps);
+            }
+
             if (Render.WindowSize.Width != config.WindowWidth.ToInt() || Render.WindowSize.Height != config.WindowHeight.ToInt())
             {
                 Render.WindowSize.Width = config.WindowWidth.ToInt();
@@ -39,11 +45,11 @@ namespace OsuLivePlayer.Model
                 LogUtil.LogSuccess("Widow Size: " + Render.WindowSize);
             }
 
-            if (Render.UseVsync != config.LimitFps.ToBool())
+            if (Render.UseVsync != config.Vsync.ToBool())
             {
-                Render.UseVsync = config.LimitFps.ToBool();
+                Render.UseVsync = config.Vsync.ToBool();
                 FormController.CloseDirectXForm();
-                LogUtil.LogSuccess("Limit Fps: " + (Render.UseVsync ? "On" : "Off"));
+                LogUtil.LogSuccess("Vsync: " + (Render.UseVsync ? "On" : "Off"));
             }
 
             FormController.CreateDirectXForm(this, OrtdpController.OsuModel);
@@ -59,5 +65,6 @@ namespace OsuLivePlayer.Model
     {
         public Size WindowSize;
         public bool UseVsync;
+        public int? LimitFps;
     }
 }

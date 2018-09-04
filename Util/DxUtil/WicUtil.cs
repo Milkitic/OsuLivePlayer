@@ -48,7 +48,12 @@ namespace OsuLivePlayer.Util.DxUtil
 
                     WIC.FormatConverter converter = new WIC.FormatConverter(imagingFactory);
                     converter.Initialize(frame, WIC.PixelFormat.Format32bppPRGBA);
-                    bmp = D2D.Bitmap.FromWicBitmap(renderTarget, converter);
+
+                    var bitmapProperties =
+                        new D2D.BitmapProperties(new D2D.PixelFormat(Format.R8G8B8A8_UNorm, D2D.AlphaMode.Premultiplied));
+                    //Size2 size = new Size2(frame.Size.Width, frame.Size.Height);
+
+                    bmp = D2D.Bitmap.FromWicBitmap(renderTarget, converter, bitmapProperties);
 
                     Sw.Stop();
                     LogUtil.LogInfo($"Load: {Sw.ElapsedMilliseconds}ms.");
@@ -115,7 +120,7 @@ namespace OsuLivePlayer.Util.DxUtil
                 finally
                 {
                     Sw.Stop();
-                    LogUtil.LogInfo($"[FromGdi] Load: {Sw.ElapsedMilliseconds}ms.");
+                    //LogUtil.LogInfo($"[FromGdi] Load: {Sw.ElapsedMilliseconds}ms.");
                 }
             }
         }

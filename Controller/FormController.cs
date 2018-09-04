@@ -1,17 +1,18 @@
-﻿using System;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using OsuLivePlayer.Model;
+﻿using OsuLivePlayer.Model;
 using OsuLivePlayer.Model.OsuStatus;
-using OsuLivePlayer.RenderForm;
+using OsuLivePlayer.Render;
 using OsuLivePlayer.Util;
 using OsuLivePlayer.Util.DxUtil;
+using System;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace OsuLivePlayer.Controller
 {
     internal static class FormController
     {
         private static Form _dxForm;
+
 
         static FormController()
         {

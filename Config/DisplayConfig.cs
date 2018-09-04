@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Sync.Tools;
+using Sync.Tools.ConfigurationAttribute;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Sync.Tools;
-using Sync.Tools.ConfigurationAttribute;
 
 namespace OsuLivePlayer.Config
 {
@@ -13,7 +13,9 @@ namespace OsuLivePlayer.Config
         [Bool]
         public ConfigurationElement PreferMetadataInOriginalLanguage { get; set; } = "True";
         [Bool]
-        public ConfigurationElement LimitFps { get; set; } = "True";
+        public ConfigurationElement Vsync { get; set; } = "True";
+        [Integer(MaxValue = 200)]
+        public ConfigurationElement LimitFps { get; set; } = "60";
         [Integer(MinValue = 640)]
         public ConfigurationElement WindowWidth { get; set; } = "1280";
         [Integer(MinValue = 480)]
@@ -31,7 +33,7 @@ namespace OsuLivePlayer.Config
 
         public void onConfigurationReload()
         {
-            OsuLivePlayerPlugin.Object.ReloadFromConfig(this);
+            OsuLivePlayerPlugin.Settings.ReloadFromConfig(this);
         }
     }
 }

@@ -1,25 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Windows.Forms.VisualStyles;
-using OsuLivePlayer.Interface;
+﻿using OsuLivePlayer.Interface;
 using OsuLivePlayer.Layer.Dx;
 using OsuLivePlayer.Model;
 using OsuLivePlayer.Model.OsuStatus;
 using OsuLivePlayer.Util;
-using OsuLivePlayer.Util.DxUtil;
-using OsuRTDataProvider.Listen;
-using Sync;
-using DX = SharpDX;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 using D2D = SharpDX.Direct2D1;
-using DW = SharpDX.DirectWrite;
+using DX = SharpDX;
 using DXGI = SharpDX.DXGI;
-using Mathe = SharpDX.Mathematics.Interop;
 
-namespace OsuLivePlayer.RenderForm
+namespace OsuLivePlayer.Render
 {
     internal class DxRenderForm : Form
     {
@@ -41,8 +35,9 @@ namespace OsuLivePlayer.RenderForm
 
             // Window settings
             ClientSize = obj.Render.WindowSize;
-            FormBorderStyle = FormBorderStyle.FixedSingle;
+            FormBorderStyle = FormBorderStyle.Sizable;
             MaximizeBox = false;
+            StartPosition = FormStartPosition.CenterScreen;
             //TopMost = true;
             // Render settings
             _useVsync = obj.Render.UseVsync;
@@ -54,8 +49,6 @@ namespace OsuLivePlayer.RenderForm
             Load += OnFormLoad;
             FormClosed += OnFormClosed;
         }
-
-
 
         private void OnFormLoad(object sender, EventArgs e)
         {
@@ -76,13 +69,13 @@ namespace OsuLivePlayer.RenderForm
                 PixelSize = new DX.Size2(ClientSize.Width, ClientSize.Height),
                 PresentOptions = _useVsync ? D2D.PresentOptions.None : D2D.PresentOptions.Immediately
             };
-            var renderProp = new D2D.RenderTargetProperties(D2D.RenderTargetType.Default, pixelFormat, 96, 96,
-                D2D.RenderTargetUsage.None, D2D.FeatureLevel.Level_DEFAULT);
+            var renderProp = new D2D.RenderTargetProperties(D2D.RenderTargetType.Hardware, pixelFormat, 96, 96,
+                D2D.RenderTargetUsage.ForceBitmapRemoting, D2D.FeatureLevel.Level_DEFAULT);
             RenderTarget = new D2D.WindowRenderTarget(Factory, renderProp, winProp)
             {
                 AntialiasMode = D2D.AntialiasMode.PerPrimitive,
                 TextAntialiasMode = D2D.TextAntialiasMode.Grayscale,
-                Transform = new Mathe.RawMatrix3x2 { M11 = 1f, M12 = 0f, M21 = 0f, M22 = 1f, M31 = 0, M32 = 0 }
+                Transform = new DX.Matrix3x2 { M11 = 1f, M12 = 0f, M21 = 0f, M22 = 1f, M31 = 0, M32 = 0 }
             };
 
             LayerList = new List<DxLayer>
@@ -115,9 +108,15 @@ namespace OsuLivePlayer.RenderForm
             if (WindowState == FormWindowState.Minimized) return;
             if (RenderTarget == null || RenderTarget.IsDisposed) return;
 
+            Render();
+            Invalidate();
+        }
+
+        private void Render()
+        {
             // Begin rendering
             RenderTarget.BeginDraw();
-            RenderTarget.Clear(new Mathe.RawColor4(0, 0, 0, 1));
+            RenderTarget.Clear(new DX.Color4(0, 0, 0, 1));
 
             // Draw layers
             for (var i = 0; i < LayerList.Count; i++)
@@ -133,8 +132,6 @@ namespace OsuLivePlayer.RenderForm
 
             // End drawing
             RenderTarget.EndDraw();
-
-            Invalidate();
         }
     }
 }

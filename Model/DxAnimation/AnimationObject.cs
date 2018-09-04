@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Linq;
 using D2D = SharpDX.Direct2D1;
-using Mathe = SharpDX.Mathematics.Interop;
 using Gdip = System.Drawing;
 
 namespace OsuLivePlayer.Model.DxAnimation

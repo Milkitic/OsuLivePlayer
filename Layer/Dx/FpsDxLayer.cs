@@ -1,16 +1,17 @@
-﻿using System;
+﻿using OsuLivePlayer.Interface;
+using OsuLivePlayer.Model;
+using OsuLivePlayer.Model.OsuStatus;
+using OsuLivePlayer.Util;
+using OsuLivePlayer.Util.DxUtil;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using OsuLivePlayer.Interface;
-using OsuLivePlayer.Model;
-using OsuLivePlayer.Model.OsuStatus;
-using OsuLivePlayer.Util.DxUtil;
-using DW = SharpDX.DirectWrite;
+using SharpDX;
 using D2D = SharpDX.Direct2D1;
-using Mathe = SharpDX.Mathematics.Interop;
+using DW = SharpDX.DirectWrite;
 
 namespace OsuLivePlayer.Layer.Dx
 {
@@ -27,11 +28,10 @@ namespace OsuLivePlayer.Layer.Dx
         private long _delay;
         private int _buffer;
         private readonly Queue<long> _delayQueue = new Queue<long>();
-        private string _fps = "0 FPS";
-
+        private string _fpsStr = "0 FPS";
         public FpsDxLayer(D2D.RenderTarget renderTarget, DxLoadObject settings, OsuModel osuModel) : base(renderTarget, settings, osuModel)
         {
-            _whiteBrush = new D2D.SolidColorBrush(RenderTarget, new Mathe.RawColor4(1, 1, 1, 1));
+            _whiteBrush = new D2D.SolidColorBrush(RenderTarget, new Color4(1, 1, 1, 1));
             _textFormat = new DW.TextFormat(_factoryWrite, "Microsoft YaHei", 12);
             _bufferSw = new Stopwatch();
             _bufferSw.Start();
@@ -52,11 +52,12 @@ namespace OsuLivePlayer.Layer.Dx
 
             if (_buffer != tmp)
             {
-                _fps = Math.Floor(1 / (_delayQueue.AsEnumerable().Average() / Stopwatch.Frequency)) + " FPS";
+                int fps = (int)Math.Floor(1 / (_delayQueue.AsEnumerable().Average() / Stopwatch.Frequency));
+                _fpsStr = fps + " FPS";
                 _buffer = tmp;
             }
 
-            RenderTarget.DrawText(_fps, _textFormat, new Mathe.RawRectangleF(0, 0, 400, 200), _whiteBrush);
+            RenderTarget.DrawText(_fpsStr, _textFormat, new RectangleF(0, 0, 400, 200), _whiteBrush);
 
             _sw.Restart();
         }
