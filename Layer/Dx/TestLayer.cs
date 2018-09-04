@@ -12,6 +12,7 @@ using OsuLivePlayer.Util.GdipUtil;
 using SharpDX;
 using Gdip = System.Drawing;
 using D2D = SharpDX.Direct2D1;
+using Mathe = SharpDX.Mathematics.Interop;
 
 namespace OsuLivePlayer.Layer.Dx
 {
@@ -27,7 +28,7 @@ namespace OsuLivePlayer.Layer.Dx
             D2D.Bitmap[] bmps = StringUtil.GetCharsBitmap(ok, font, brush).Select(renderTarget.LoadBitmap).ToArray();
             _titleObjs = new StringObject[ok.Length];
             for (var i = 0; i < _titleObjs.Length; i++)
-                _titleObjs[i] = new StringObject(RenderTarget, bmps[i], new Point(0, 0));
+                _titleObjs[i] = new StringObject(RenderTarget, bmps[i], new Mathe.RawPoint(0, 0));
         }
 
         public override void Measure()

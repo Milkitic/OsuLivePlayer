@@ -3,15 +3,16 @@ using OsuLivePlayer.Model;
 using OsuLivePlayer.Model.OsuStatus;
 using OsuLivePlayer.Util;
 using OsuLivePlayer.Util.DxUtil;
+using SharpDX;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SharpDX;
 using D2D = SharpDX.Direct2D1;
 using DW = SharpDX.DirectWrite;
+using Mathe = SharpDX.Mathematics.Interop;
 
 namespace OsuLivePlayer.Layer.Dx
 {
@@ -31,7 +32,7 @@ namespace OsuLivePlayer.Layer.Dx
         private string _fpsStr = "0 FPS";
         public FpsDxLayer(D2D.RenderTarget renderTarget, DxLoadObject settings, OsuModel osuModel) : base(renderTarget, settings, osuModel)
         {
-            _whiteBrush = new D2D.SolidColorBrush(RenderTarget, new Color4(1, 1, 1, 1));
+            _whiteBrush = new D2D.SolidColorBrush(RenderTarget, new Mathe.RawColor4(1, 1, 1, 1));
             _textFormat = new DW.TextFormat(_factoryWrite, "Microsoft YaHei", 12);
             _bufferSw = new Stopwatch();
             _bufferSw.Start();
@@ -57,7 +58,7 @@ namespace OsuLivePlayer.Layer.Dx
                 _buffer = tmp;
             }
 
-            RenderTarget.DrawText(_fpsStr, _textFormat, new RectangleF(0, 0, 400, 200), _whiteBrush);
+            RenderTarget.DrawText(_fpsStr, _textFormat, new Mathe.RawRectangleF(0, 0, 400, 200), _whiteBrush);
 
             _sw.Restart();
         }

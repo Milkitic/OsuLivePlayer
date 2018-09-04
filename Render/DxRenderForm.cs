@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using D2D = SharpDX.Direct2D1;
 using DX = SharpDX;
 using DXGI = SharpDX.DXGI;
+using Mathe = SharpDX.Mathematics.Interop;
 
 namespace OsuLivePlayer.Render
 {
@@ -75,7 +76,7 @@ namespace OsuLivePlayer.Render
             {
                 AntialiasMode = D2D.AntialiasMode.PerPrimitive,
                 TextAntialiasMode = D2D.TextAntialiasMode.Grayscale,
-                Transform = new DX.Matrix3x2 { M11 = 1f, M12 = 0f, M21 = 0f, M22 = 1f, M31 = 0, M32 = 0 }
+                Transform = new Mathe.RawMatrix3x2 { M11 = 1f, M12 = 0f, M21 = 0f, M22 = 1f, M31 = 0, M32 = 0 }
             };
 
             LayerList = new List<DxLayer>
@@ -116,7 +117,7 @@ namespace OsuLivePlayer.Render
         {
             // Begin rendering
             RenderTarget.BeginDraw();
-            RenderTarget.Clear(new DX.Color4(0, 0, 0, 1));
+            RenderTarget.Clear(new Mathe.RawColor4(0, 0, 0, 1));
 
             // Draw layers
             for (var i = 0; i < LayerList.Count; i++)
@@ -131,7 +132,7 @@ namespace OsuLivePlayer.Render
                 item.Draw();
 
             // End drawing
-            RenderTarget.EndDraw();
+            RenderTarget.TryEndDraw(out _,out _);
         }
     }
 }

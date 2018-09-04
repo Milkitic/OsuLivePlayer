@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using D2D = SharpDX.Direct2D1;
 using Gdip = System.Drawing;
+using Mathe = SharpDX.Mathematics.Interop;
 
 namespace OsuLivePlayer.Model.DxAnimation
 {
@@ -38,27 +39,27 @@ namespace OsuLivePlayer.Model.DxAnimation
         private int MaxTime => TimeRange.GetMaxTime(_fadeTime, _rectTime, _inRectTime);
         private int MinTime => TimeRange.GetMinTime(_fadeTime, _rectTime, _inRectTime);
 
-        private Static<RectangleF> InRect => new Static<RectangleF>
+        private Static<Mathe.RawRectangleF> InRect => new Static<Mathe.RawRectangleF>
         {
-            Default = new RectangleF(_inX.Default, _inY.Default, _inX.Default + _inW.Default, _inY.Default + _inH.Default),
-            Source = new RectangleF(_inX.Source, _inY.Source, _inX.Source + _inW.Source, _inY.Source + _inH.Source),
+            Default = new Mathe.RawRectangleF(_inX.Default, _inY.Default, _inX.Default + _inW.Default, _inY.Default + _inH.Default),
+            Source = new Mathe.RawRectangleF(_inX.Source, _inY.Source, _inX.Source + _inW.Source, _inY.Source + _inH.Source),
             RealTime =
-                new RectangleF(_inX.RealTime, _inY.RealTime, _inX.RealTime + _inW.RealTime, _inY.RealTime + _inH.RealTime),
-            Target = new RectangleF(_inX.Target, _inY.Target, _inX.Target + _inW.Target, _inY.Target + _inH.Target)
+                new Mathe.RawRectangleF(_inX.RealTime, _inY.RealTime, _inX.RealTime + _inW.RealTime, _inY.RealTime + _inH.RealTime),
+            Target = new Mathe.RawRectangleF(_inX.Target, _inY.Target, _inX.Target + _inW.Target, _inY.Target + _inH.Target)
         };
 
-        private Static<RectangleF> Rect => new Static<RectangleF>
+        private Static<Mathe.RawRectangleF> Rect => new Static<Mathe.RawRectangleF>
         {
-            Default = new RectangleF(_x.Default, _y.Default, _x.Default + _w.Default, _y.Default + _h.Default),
-            Source = new RectangleF(_x.Source, _y.Source, _x.Source + _w.Source, _y.Source + _h.Source),
+            Default = new Mathe.RawRectangleF(_x.Default, _y.Default, _x.Default + _w.Default, _y.Default + _h.Default),
+            Source = new Mathe.RawRectangleF(_x.Source, _y.Source, _x.Source + _w.Source, _y.Source + _h.Source),
             RealTime =
-                new RectangleF(_x.RealTime, _y.RealTime, _x.RealTime + _w.RealTime, _y.RealTime + _h.RealTime),
-            Target = new RectangleF(_x.Target, _y.Target, _x.Target + _w.Target, _y.Target + _h.Target)
+                new Mathe.RawRectangleF(_x.RealTime, _y.RealTime, _x.RealTime + _w.RealTime, _y.RealTime + _h.RealTime),
+            Target = new Mathe.RawRectangleF(_x.Target, _y.Target, _x.Target + _w.Target, _y.Target + _h.Target)
         };
 
         #endregion private statics
 
-        public BitmapObject(D2D.RenderTarget target, D2D.Bitmap bitmap, Point initPosision, bool enableLog = false)
+        public BitmapObject(D2D.RenderTarget target, D2D.Bitmap bitmap, Mathe.RawPoint initPosision, bool enableLog = false)
         {
             Target = target;
             Bitmap = bitmap;
@@ -170,8 +171,8 @@ namespace OsuLivePlayer.Model.DxAnimation
         /// <summary>
         /// Do not use with any MOVE and any SCALE at same time!
         /// </summary>
-        public void FreeRect(EasingEnum easingEnum, int startTime, int endTime, RectangleF startRect,
-            RectangleF endRect)
+        public void FreeRect(EasingEnum easingEnum, int startTime, int endTime, Mathe.RawRectangleF startRect,
+            Mathe.RawRectangleF endRect)
         {
             if (_rectTime.Max == int.MaxValue || endTime > _rectTime.Max)
             {
@@ -223,8 +224,8 @@ namespace OsuLivePlayer.Model.DxAnimation
         /// <summary>
         /// todo: Still have bugs.
         /// </summary>
-        public void FreeCutRect(EasingEnum easingEnum, int startTime, int endTime, RectangleF startRect,
-            RectangleF endRect)
+        public void FreeCutRect(EasingEnum easingEnum, int startTime, int endTime, Mathe.RawRectangleF startRect,
+            Mathe.RawRectangleF endRect)
         {
             if (_inRectTime.Max == int.MaxValue || endTime > _inRectTime.Max)
             {
@@ -314,7 +315,7 @@ namespace OsuLivePlayer.Model.DxAnimation
             }
         }
 
-        public BitmapObject Reset(Point posision) => new BitmapObject(Target, Bitmap, posision, EnableLog);
+        public BitmapObject Reset(Mathe.RawPoint posision) => new BitmapObject(Target, Bitmap, posision, EnableLog);
 
         public void Dispose()
         {
