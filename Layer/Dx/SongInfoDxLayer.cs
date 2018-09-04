@@ -100,7 +100,7 @@ namespace OsuLivePlayer.Layer.Dx
                 Gdip.Font nFont = _newArtist.IsWestern ? _wAFont : _eAFont;
                 Gdip.Brush nBrush = _newArtist.IsWestern ? _wBrush : _eBrush;
 
-                _oldArtistObjs = _newArtistObjs?.Select(k => k?.Reset(new Mathe.RawPoint(0, 0))).ToArray();
+                _oldArtistObjs = _newArtistObjs?.Select(k => k?.Reset(Origin.TopLeft, new Mathe.RawPoint(0, 0))).ToArray();
                 string artist = _newArtist.ToPreferredString();
                 D2D.Bitmap[] bmps = StringUtil.GetCharsBitmap(artist, nFont, nBrush).Select(RenderTarget.LoadBitmap).ToArray();
                 _newArtistObjs = new StringObject[artist.Length];
@@ -118,7 +118,7 @@ namespace OsuLivePlayer.Layer.Dx
 
                 for (var i = 0; i < _newArtistObjs.Length; i++)
                 {
-                    _newArtistObjs[i] = new StringObject(RenderTarget, bmps[i], new Mathe.RawPoint(0, 0));
+                    _newArtistObjs[i] = new StringObject(RenderTarget, bmps[i], Origin.TopLeft, new Mathe.RawPoint(0, 0));
                     _newArtistRndX[i] = (float)_rnd.NextDouble() * 50 + 50;
                     _newArtistRndY[i] = (float)_rnd.NextDouble() * 100 - 50;
                 }
@@ -131,7 +131,7 @@ namespace OsuLivePlayer.Layer.Dx
                 Gdip.Font nFont = _newTitle.IsWestern ? _wTFont : _eTFont;
                 Gdip.Brush nBrush = _newTitle.IsWestern ? _wBrush : _eBrush;
 
-                _oldTitleObjs = _newTitleObjs?.Select(k => k?.Reset(new Mathe.RawPoint(0, 0))).ToArray();
+                _oldTitleObjs = _newTitleObjs?.Select(k => k?.Reset(Origin.TopLeft, new Mathe.RawPoint(0, 0))).ToArray();
                 string title = _newTitle.ToPreferredString();
                 D2D.Bitmap[] bmps = StringUtil.GetCharsBitmap(title, nFont, nBrush).Select(RenderTarget.LoadBitmap).ToArray();
                 _newTitleObjs = new StringObject[title.Length];
@@ -149,7 +149,7 @@ namespace OsuLivePlayer.Layer.Dx
 
                 for (var i = 0; i < title.Length; i++)
                 {
-                    _newTitleObjs[i] = new StringObject(RenderTarget, bmps[i], new Mathe.RawPoint(0, 0));
+                    _newTitleObjs[i] = new StringObject(RenderTarget, bmps[i], Origin.TopLeft, new Mathe.RawPoint(0, 0));
                     _newTitleRndX[i] = (float)_rnd.NextDouble() * 50 + 50;
                     _newTitleRndY[i] = (float)_rnd.NextDouble() * 100 - 50;
                 }
@@ -160,6 +160,8 @@ namespace OsuLivePlayer.Layer.Dx
         {
             if (!_isStart) return;
 
+            int fixS = 12;
+            int fix = 13;
             float xOffset = 0;
             int startT = 50, effctT = 500, stepT = 10;
 
@@ -174,7 +176,7 @@ namespace OsuLivePlayer.Layer.Dx
                         new Gdip.PointF(_artistX + xOffset, _artistY));
                     item.Fade(EasingEnum.EasingOut, 0 + i * stepT, effctT + i * stepT, 0, 1);
                     item.EndDraw();
-                    xOffset += item.Width - 21;
+                    xOffset += item.Width - fixS;
                 }
 
             startT = 75;
@@ -192,7 +194,7 @@ namespace OsuLivePlayer.Layer.Dx
                         new Gdip.PointF(_titleX + xOffset, _titleY));
                     item.Fade(EasingEnum.EasingOut, 0 + i * stepT, effctT + i * stepT, 0, 1);
                     item.EndDraw();
-                    xOffset += item.Width - 21;
+                    xOffset += item.Width - fix;
                 }
 
             startT = 0;
@@ -208,7 +210,7 @@ namespace OsuLivePlayer.Layer.Dx
                         new Gdip.PointF(_artistX + _oldArtistRndX[i] + xOffset, _artistY + _oldArtistRndY[i]));
                     item.Fade(EasingEnum.EasingIn, 0 + i * stepT, effctT + i * stepT, 1, 0);
                     item.EndDraw();
-                    xOffset += item.Width - 21;
+                    xOffset += item.Width - fixS;
                 }
 
             startT = 25;
@@ -224,7 +226,7 @@ namespace OsuLivePlayer.Layer.Dx
                         new Gdip.PointF(_titleX + _oldTitleRndX[i] + xOffset, _titleY + _oldTitleRndY[i]));
                     item.Fade(EasingEnum.EasingIn, 0 + i * stepT, effctT + i * stepT, 1, 0);
                     item.EndDraw();
-                    xOffset += item.Width - 21;
+                    xOffset += item.Width - fix;
                 }
         }
 

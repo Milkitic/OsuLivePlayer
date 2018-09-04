@@ -95,10 +95,10 @@ namespace OsuLivePlayer.Layer.Dx
                 _fixedRect = GetBgPosition(_newBg.Size);
                 var size = Settings.Render.WindowSize;
                 if (_newBg != null)
-                    _newBgObj = new BitmapObject(RenderTarget, _newBg,
+                    _newBgObj = new BitmapObject(RenderTarget, _newBg, Origin.Default,
                         new Mathe.RawPoint(size.Width / 2, size.Height / 2));
                 if (_oldBg != null)
-                    _oldBgObj = new BitmapObject(RenderTarget, _oldBg,
+                    _oldBgObj = new BitmapObject(RenderTarget, _oldBg, Origin.Default,
                         new Mathe.RawPoint(size.Width / 2, size.Height / 2));
                 _transformStyle = _rnd.Next(0, 4);
             }

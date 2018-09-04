@@ -36,7 +36,7 @@ namespace OsuLivePlayer.Render
 
             // Window settings
             ClientSize = obj.Render.WindowSize;
-            FormBorderStyle = FormBorderStyle.Sizable;
+            FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             StartPosition = FormStartPosition.CenterScreen;
             //TopMost = true;
@@ -76,7 +76,7 @@ namespace OsuLivePlayer.Render
             {
                 AntialiasMode = D2D.AntialiasMode.PerPrimitive,
                 TextAntialiasMode = D2D.TextAntialiasMode.Grayscale,
-                Transform = new Mathe.RawMatrix3x2 { M11 = 1f, M12 = 0f, M21 = 0f, M22 = 1f, M31 = 0, M32 = 0 }
+                Transform = new Mathe.RawMatrix3x2(1, 0, 0, 1, 0, 0)
             };
 
             LayerList = new List<DxLayer>
@@ -84,7 +84,7 @@ namespace OsuLivePlayer.Render
                 new BgDxLayer(RenderTarget, _obj, _osuModel),
                 new SongInfoDxLayer(RenderTarget, _obj, _osuModel),
                 new FpsDxLayer(RenderTarget, _obj, _osuModel),
-                //new TestLayer(RenderTarget, _settings, _osuModel),
+                //new TestLayer(RenderTarget, _obj, _osuModel),
             };
 
             _renderTask = new Task[LayerList.Count];
@@ -132,7 +132,7 @@ namespace OsuLivePlayer.Render
                 item.Draw();
 
             // End drawing
-            RenderTarget.TryEndDraw(out _,out _);
+            RenderTarget.TryEndDraw(out _, out _);
         }
     }
 }

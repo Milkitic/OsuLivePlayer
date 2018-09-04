@@ -27,7 +27,7 @@ namespace OsuLivePlayer.Util.GdipUtil
                     strSize = g.MeasureString(content, font);
             }
 
-            bmp = new Bitmap((int)Math.Ceiling(strSize.Width) + 10, (int)Math.Ceiling(strSize.Height) + 10);
+            bmp = new Bitmap((int)Math.Ceiling(strSize.Width) + 2, (int)Math.Ceiling(strSize.Height) + 2);
 
             using (StringFormat format = StringFormat.GenericTypographic)
             using (Pen pen = new Pen(Color.FromArgb(96, 0, 0, 0), 2))
@@ -35,7 +35,7 @@ namespace OsuLivePlayer.Util.GdipUtil
             {
                 g.SmoothingMode = SmoothingMode.AntiAlias;
                 g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
-                RectangleF rect = new RectangleF(5, 5, strSize.Width, strSize.Height);
+                RectangleF rect = new RectangleF(1, 1, strSize.Width, strSize.Height);
 
                 float dpi = g.DpiY;
                 using (GraphicsPath gp = GetStringPath(content, dpi, rect, font, format))
