@@ -1,4 +1,6 @@
-﻿namespace OsuLivePlayer.Model.OsuStatus
+﻿using OsuLivePlayer.Util;
+
+namespace OsuLivePlayer.Model.OsuStatus
 {
     public class GamePlay
     {

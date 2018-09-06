@@ -11,11 +11,11 @@ namespace OsuLivePlayer.Util
 {
     internal class LogUtil
     {
-        public static void LogInfo(string text) => InternalWriteColor(text, ConsoleColor.Cyan, 3);
+        public static void LogInfo(string text) => InternalWriteColor(text, ConsoleColor.Cyan, 2);
 
-        public static void LogSuccess(string text) => InternalWriteColor(text, ConsoleColor.Green, 3);
+        public static void LogSuccess(string text) => InternalWriteColor(text, ConsoleColor.Green, 2);
         
-        public static void LogError(string text) => InternalWriteColor(text, ConsoleColor.Red, 3);
+        public static void LogError(string text) => InternalWriteColor(text, ConsoleColor.Red, 2);
 
         public static void WriteColor(string text, ConsoleColor color, bool useNewLine = true, bool useTime = true) =>
             InternalWriteColor(text, color, 2, useNewLine, useTime);

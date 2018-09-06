@@ -1,4 +1,5 @@
-﻿using OsuLivePlayer.Interface;
+﻿using Milkitic.OsuLib.Model;
+using OsuLivePlayer.Interface;
 using OsuLivePlayer.Model;
 using OsuLivePlayer.Model.DxAnimation;
 using OsuLivePlayer.Model.OsuStatus;
@@ -27,8 +28,8 @@ namespace OsuLivePlayer.Layer.Dx
         private Mathe.RawRectangleF _fixedRectOld, _fixedRect;
         private readonly Mathe.RawRectangleF _windowRect;
 
-        private string _currentMapPath;
-        private BitmapObject _newBgObj, _oldBgObj;
+        private string _crtMapPath = "", _crtMapBg = "", _crtMapFile = "";
+        private BitmapObject _newBgObj, _oldBgObj, _newBgObjEffect;
         private bool _lastBgIsNull;
 
         private readonly OsuListenerManager.OsuStatus _status;
@@ -39,12 +40,13 @@ namespace OsuLivePlayer.Layer.Dx
 
         // Effect control;
         private int _transformStyle;
-        private Stopwatch sw = new Stopwatch();
+        private double[] _barList, _11List;
+        private OsuFile.TimeRange[] _kiaiList;
+        private readonly Stopwatch _sw = new Stopwatch();
 
         public BgDxLayer(D2D.RenderTarget renderTarget, DxLoadObject settings, OsuModel osuModel)
             : base(renderTarget, settings, osuModel)
         {
-            _currentMapPath = "";
             _status = OsuModel.Status;
             string defName = "default.png";
             string covName = "cover.png";
@@ -71,41 +73,69 @@ namespace OsuLivePlayer.Layer.Dx
 
             if (!_isStart) return;
 
-            if (_currentMapPath != OsuModel.Idle.NowMap.Folder)
+            if (_crtMapFile != OsuModel.Idle.NowMap.FilenameFull)
             {
-                _currentMapPath = OsuModel.Idle.NowMap.Folder;
-                var currentBgPath = Path.Combine(_currentMapPath, OsuModel.Idle.NowMap.BackgroundFilename);
+                string oldMapBg = _crtMapBg;
+                string oldMapPath = _crtMapPath;
+                _crtMapFile = OsuModel.Idle.NowMap.FilenameFull;
+                _crtMapBg = OsuModel.Idle.NowMap.BackgroundFilename;
+                _crtMapPath = OsuModel.Idle.NowMap.Folder;
 
-                if (File.Exists(currentBgPath))
+                LogUtil.LogInfo((_crtMapBg == null).ToString());
+                if (oldMapPath != _crtMapPath || oldMapBg != _crtMapBg)
                 {
-                    _oldBg = _newBg;
-                    _newBg = RenderTarget.LoadBitmap(currentBgPath);
-                    _lastBgIsNull = false;
+                    var currentBgPath = Path.Combine(_crtMapPath, OsuModel.Idle.NowMap.BackgroundFilename);
+                    if (File.Exists(currentBgPath))
+                    {
+                        _oldBg = _newBg;
+                        _newBg = RenderTarget.LoadBitmap(currentBgPath);
+                        _lastBgIsNull = false;
+                    }
+                    else if (_defaultBg != null)
+                    {
+                        if (_lastBgIsNull) return;
+                        _oldBg = _newBg;
+                        _newBg = _defaultBg;
+                        _lastBgIsNull = true;
+                    }
+                    else
+                        return;
+
+                    _fixedRectOld = _fixedRect;
+
+                    _fixedRect = GetBgPosition(_newBg.Size);
+                    var size = Settings.Render.WindowSize;
+                    if (_newBg != null)
+                    {
+                        _newBgObj = new BitmapObject(RenderTarget, _newBg, Origin.Default,
+                            new Mathe.RawPoint(size.Width / 2, size.Height / 2));
+                        _newBgObjEffect = new BitmapObject(RenderTarget, _newBg, Origin.Default,
+                            new Mathe.RawPoint(size.Width / 2, size.Height / 2), true);
+                    }
+                    if (_oldBg != null)
+                        _oldBgObj = new BitmapObject(RenderTarget, _oldBg, Origin.Default,
+                            new Mathe.RawPoint(size.Width / 2, size.Height / 2));
+                    _transformStyle = _rnd.Next(0, 3);
+                    if (_sw.ElapsedMilliseconds < 600 && _sw.ElapsedMilliseconds != 0)
+                        _transformStyle = 99;
                 }
-                else if (_defaultBg != null)
+
+                try
                 {
-                    if (_lastBgIsNull) return;
-                    _oldBg = _newBg;
-                    _newBg = _defaultBg;
-                    _lastBgIsNull = true;
+                    OsuFile file = new OsuFile(OsuModel.Idle.NowMap.FilenameFull);
+                    _barList = file.GetTimingBars();
+                    _11List = file.GetTimings(1);
+                    _kiaiList = file.GetTimingKiais();
                 }
-                else
-                    return;
+                catch (NotSupportedException e)
+                {
+                    LogUtil.LogError(e.Message);
+                    _barList = new double[0];
+                    _11List = new double[0];
+                    _kiaiList = new OsuFile.TimeRange[0];
+                }
 
-                _fixedRectOld = _fixedRect;
-
-                _fixedRect = GetBgPosition(_newBg.Size);
-                var size = Settings.Render.WindowSize;
-                if (_newBg != null)
-                    _newBgObj = new BitmapObject(RenderTarget, _newBg, Origin.Default,
-                        new Mathe.RawPoint(size.Width / 2, size.Height / 2));
-                if (_oldBg != null)
-                    _oldBgObj = new BitmapObject(RenderTarget, _oldBg, Origin.Default,
-                        new Mathe.RawPoint(size.Width / 2, size.Height / 2));
-                _transformStyle = _rnd.Next(0, 3);
-                if (sw.ElapsedMilliseconds < 600 && sw.ElapsedMilliseconds != 0)
-                    _transformStyle = 99;
-                sw.Restart();
+                _sw.Restart();
             }
         }
 
@@ -153,6 +183,71 @@ namespace OsuLivePlayer.Layer.Dx
                 }
 
                 _newBgObj.EndDraw();
+            }
+
+            if (_newBgObj != null && _newBgObj.IsFinished && _11List?.Length > 0)
+            {
+                _newBgObjEffect.StartDraw();
+
+                for (var i = 0; i < _11List.Length; i++)
+                {
+                    var item = _11List[i];
+                    int t = (int)item;
+                    double effectT = i == _11List.Length - 1 ? 4000 : (_11List[i + 1] - t) / 1d;
+                    float w = 20;
+                    float h = w * (_fixedRect.Bottom - _fixedRect.Top) / (_fixedRect.Right - _fixedRect.Left);
+                    if (_kiaiList.Any(k => k.StartTime <= item && k.EndTime >= item) && !_barList.Contains(item))
+                    {
+                        _newBgObjEffect.Fade(EasingEnum.EasingOut, t, t + (int)effectT, 1, 0);
+                        _newBgObjEffect.FreeRect(EasingEnum.EasingOut, t, t + (int)effectT, _fixedRect,
+                            new Mathe.RawRectangleF(_fixedRect.Left - w, _fixedRect.Top - h,
+                                _fixedRect.Right + w, _fixedRect.Bottom + h));
+                    }
+                }
+
+                for (var i = 0; i < _barList.Length; i++)
+                {
+                    var item = _barList[i];
+                    int t = (int)item;
+                    double effectT;
+                    float fade = 1;
+                    float w = 40;
+                    var easingRetc = EasingEnum.EasingOut;
+                    var easingFade = EasingEnum.EasingOut;
+                    if (i == _barList.Length - 1)
+                        effectT = 4000;
+                    else
+                    {
+                        if (_kiaiList.Any(k => item >= k.StartTime && item < k.EndTime))
+                        {
+                            if (i != _barList.Length - 1 &&
+                                _kiaiList.Any(k => item == k.StartTime && _barList[i + 1] > k.EndTime)) // 一闪而过的Kiai
+                            {
+                                effectT = (_barList[i + 1] - t) * 1;
+                                w = 50;
+                                easingRetc = EasingEnum.QuintOut;
+                                easingFade = EasingEnum.EasingIn;
+                                fade = 0.7f;
+                            }
+                            else
+                            {
+                                w = 30;
+                                effectT = (_11List[1] - _11List[0]) * 1d;
+                            }
+                        }
+                        else
+                            effectT = (_barList[i + 1] - t) * 2d / 3;
+                    }
+                    float h = w * (_fixedRect.Bottom - _fixedRect.Top) / (_fixedRect.Right - _fixedRect.Left);
+
+                    _newBgObjEffect.Fade(easingFade, t, t + (int)effectT, fade, 0);
+                    _newBgObjEffect.FreeRect(easingRetc, t, t + (int)effectT, _fixedRect,
+                        new Mathe.RawRectangleF(_fixedRect.Left - w, _fixedRect.Top - h,
+                            _fixedRect.Right + w, _fixedRect.Bottom + h));
+                }
+
+                _newBgObjEffect.EndDraw();
+                _newBgObjEffect.AdjustTime(OsuModel.GamePlay.CurrentOffset);
             }
 
             if (_coverBg != null)

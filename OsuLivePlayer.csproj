@@ -99,5 +99,11 @@
       <DependentUpon>DxRenderForm.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Beatmap-Info-Editor\Milkitic.OsuLib\Milkitic.OsuLib.csproj">
+      <Project>{c86d348d-a961-456b-9820-0bd9f069a9cb}</Project>
+      <Name>Milkitic.OsuLib</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

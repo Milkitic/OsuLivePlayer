@@ -68,6 +68,8 @@ namespace OsuLivePlayer.Layer.Dx
                 item.EndDraw();
                 xOffset += item.Width;
             }
+
+
         }
 
         public override void Dispose()

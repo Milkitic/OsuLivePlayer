@@ -27,6 +27,8 @@ namespace OsuLivePlayer.Model.DxAnimation
         public bool IsStarted { get; private set; }
         public bool IsFinished { get; private set; }
         private readonly Stopwatch _watch = new Stopwatch();
+        private long _offset;
+        private long _timeOffset;
 
         private readonly int _originOffsetX, _originOffsetY;
 
@@ -158,7 +160,7 @@ namespace OsuLivePlayer.Model.DxAnimation
                 _y.Source = startPoint.Y;
             }
 
-            float ms = _watch.ElapsedMilliseconds;
+            float ms = _offset;
             if (!IsFinished && ms <= _rectTime.Min)
             {
                 _x.RealTimeToSource();
@@ -196,7 +198,7 @@ namespace OsuLivePlayer.Model.DxAnimation
                 _r.Source = startRad;
             }
 
-            float ms = _watch.ElapsedMilliseconds;
+            float ms = _offset;
             if (!IsFinished && ms <= _rotateTime.Min)
             {
                 _r.RealTimeToSource();
@@ -234,7 +236,7 @@ namespace OsuLivePlayer.Model.DxAnimation
                 _vy.Source = startVy;
             }
 
-            float ms = _watch.ElapsedMilliseconds;
+            float ms = _offset;
             if (!IsFinished && ms <= _rectTime.Min)
             {
                 _vx.RealTimeToSource();
@@ -270,7 +272,7 @@ namespace OsuLivePlayer.Model.DxAnimation
                 _f.Source = startOpacity;
             }
 
-            float ms = _watch.ElapsedMilliseconds;
+            float ms = _offset;
             if (!IsFinished && ms <= _fadeTime.Min)
             {
                 _f.RealTimeToSource();
@@ -311,7 +313,7 @@ namespace OsuLivePlayer.Model.DxAnimation
                 _h.Source = startRect.Bottom - startRect.Top;
             }
 
-            float ms = _watch.ElapsedMilliseconds;
+            float ms = _offset;
             if (!IsFinished && ms <= _rectTime.Min)
             {
                 _x.RealTimeToSource();
@@ -364,7 +366,7 @@ namespace OsuLivePlayer.Model.DxAnimation
                 _inH.Source = startRect.Bottom - startRect.Top;
             }
 
-            float ms = _watch.ElapsedMilliseconds;
+            float ms = _offset;
             if (!IsFinished && ms <= _inRectTime.Min)
             {
                 _inX.RealTimeToSource();
@@ -402,14 +404,16 @@ namespace OsuLivePlayer.Model.DxAnimation
             }
             else
             {
-                if (_watch.ElapsedMilliseconds >= MaxTime)
+                if (_offset >= MaxTime)
                 {
                     _watch.Stop();
                     _watch.Reset();
                     IsFinished = true;
-                    if (EnableLog) LogUtil.LogInfo("finished");
+                    //if (EnableLog) LogUtil.LogInfo("finished");
                 }
             }
+
+            _offset = _timeOffset + _watch.ElapsedMilliseconds;
         }
 
         public void EndDraw()
@@ -451,6 +455,30 @@ namespace OsuLivePlayer.Model.DxAnimation
 
         public BitmapObject Reset(Origin origin, Mathe.RawPoint posision) =>
             new BitmapObject(Target, Bitmap, origin, posision, EnableLog);
+
+        private int? _preMs;
+        private Queue<int> _ms = new Queue<int>();
+        public void AdjustTime(int ms)
+        {
+            if (_ms.Count >= 20)
+                _ms.Dequeue();
+            _ms.Enqueue(ms);
+            //if (_pausedMs == null || _pausedMs == ms)
+            if (ms != _preMs || _ms.All(q => q == _ms.Average()))
+            {
+                _preMs = ms;
+                if (Math.Abs(_offset - ms) <= 3)
+                    return;
+
+                if (EnableLog) LogUtil.LogInfo($"OFFSET CORRECTION: {_offset}>{ms}");
+
+                if (ms < MaxTime)
+                    IsFinished = false;
+                _watch.Restart();
+                _timeOffset = ms;
+                _offset = _timeOffset + _watch.ElapsedMilliseconds;
+            }
+        }
 
         public void Dispose()
         {

@@ -23,8 +23,17 @@ namespace OsuLivePlayer.Model.DxAnimation
 
             public static TimeRange Default => new TimeRange { Max = int.MaxValue, Min = int.MinValue };
 
-            public static int GetMaxTime(params TimeRange[] timeRanges) => timeRanges.Where(t => t.Max != int.MaxValue).Max(t => t.Max);
-            public static int GetMinTime(params TimeRange[] timeRanges) => timeRanges.Where(t => t.Min != int.MinValue).Min(t => t.Min);
+            public static int GetMaxTime(params TimeRange[] timeRanges)
+            {
+                var maxTime = timeRanges.Where(t => t.Max != int.MaxValue).ToArray();
+                return maxTime.Length == 0 ? 0 : maxTime.Max(t => t.Max);
+            }
+
+            public static int GetMinTime(params TimeRange[] timeRanges)
+            {
+                var minTime = timeRanges.Where(t => t.Min != int.MinValue).ToArray();
+                return minTime.Length == 0 ? 0 : minTime.Min(t => t.Min);
+            }
         }
 
         protected struct Static<T>
