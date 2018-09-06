@@ -13,4 +13,4 @@
 * OsuRTDataProviderRelease
 * [OsuLib][1]
 
-  [1]: https://github.com/Milkitic/Beatmap-Info-Editor/tree/master/Milkitic.OsuLib "OsuLib"
+  [1]: https://github.com/Milkitic/OsuLib/tree/master/Milkitic.OsuLib "OsuLib"
