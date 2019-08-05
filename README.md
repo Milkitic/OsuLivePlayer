@@ -11,6 +11,6 @@
 * SharpDX.Mathematics
 * Sync
 * OsuRTDataProviderRelease
-* [OsuLib][1]
+* [OSharp][1]
 
-  [1]: https://github.com/Milkitic/OsuLib/tree/master/Milkitic.OsuLib "OsuLib"
+  [1]: https://github.com/Milkitic/OSharp "OSharp"
