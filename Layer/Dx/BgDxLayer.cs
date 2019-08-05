@@ -1,4 +1,5 @@
-﻿using Milkitic.OsuLib.Model;
+﻿using OSharp.Beatmap;
+using OSharp.Common.Mathematics;
 using OsuLivePlayer.Interface;
 using OsuLivePlayer.Model;
 using OsuLivePlayer.Model.DxAnimation;
@@ -8,15 +9,11 @@ using OsuLivePlayer.Util.DxUtil;
 using OsuRTDataProvider.Listen;
 using SharpDX;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using D2D = SharpDX.Direct2D1;
 using Mathe = SharpDX.Mathematics.Interop;
-using WIC = SharpDX.WIC;
 
 namespace OsuLivePlayer.Layer.Dx
 {
@@ -41,7 +38,7 @@ namespace OsuLivePlayer.Layer.Dx
         // Effect control;
         private int _transformStyle;
         private double[] _barList, _11List;
-        private OsuFile.TimeRange[] _kiaiList;
+        private RangeValue<double>[] _kiaiList;
         private readonly Stopwatch _sw = new Stopwatch();
 
         public BgDxLayer(D2D.RenderTarget renderTarget, DxLoadObject settings, OsuModel osuModel)
@@ -122,17 +119,17 @@ namespace OsuLivePlayer.Layer.Dx
 
                 try
                 {
-                    OsuFile file = new OsuFile(OsuModel.Idle.NowMap.FilenameFull);
-                    _barList = file.GetTimingBars();
-                    _11List = file.GetTimings(1);
-                    _kiaiList = file.GetTimingKiais();
+                    OsuFile file = OsuFile.ReadFromFileAsync(OsuModel.Idle.NowMap.FilenameFull).Result;
+                    _barList = file.TimingPoints.GetTimingBars();
+                    _11List = file.TimingPoints.GetTimings(1);
+                    _kiaiList = file.TimingPoints.GetTimingKiais();
                 }
                 catch (NotSupportedException e)
                 {
                     LogUtil.LogError(e.Message);
                     _barList = new double[0];
                     _11List = new double[0];
-                    _kiaiList = new OsuFile.TimeRange[0];
+                    _kiaiList = new RangeValue<double>[0];
                 }
 
                 _sw.Restart();
