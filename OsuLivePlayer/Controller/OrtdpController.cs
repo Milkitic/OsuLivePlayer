@@ -24,8 +24,8 @@ namespace OsuLivePlayer.Controller
 
         public void StopReceive()
         {
-            Idle_Stop();
             GamePlay_Stop();
+            Idle_Stop();
             Status_Stop();
             OsuModel = null;
         }
